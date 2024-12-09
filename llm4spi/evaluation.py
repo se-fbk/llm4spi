@@ -111,13 +111,16 @@ def evaluate_task_result(task: Dict, condition: str):
     task dictionary (side-effect).
     """
 
-    # we first handle the case when the task pre- or post-condition
-    # does not exists:
     task[f"{condition}_condition_baseEvaluation"] = None
     task[f"{condition}_condition_evaluation"] = None
     task[f"{condition}_condition_baseEvaluations"] = None
     task[f"{condition}_condition_evaluations"] = None
     task[f"{condition}_condition_editDistances"] = None
+    task[f"{condition}_condition_avrgRelativeEditDistance_ofUnrejected"] = None
+    task[f"{condition}_condition_avrgSize_ofUnrejected"] = None
+ 
+    # we first handle the case when the task pre- or post-condition
+    # does not exists:
     if not (f"{condition}_condition" in task) : 
         return
     conditionDesc = task[f"{condition}_condition"]
@@ -224,8 +227,6 @@ def evaluate_task_result(task: Dict, condition: str):
     task[f"{condition}_condition_editDistances"] = editDistansez
 
     # calculating average edit-distance of completions which do not fail or rejected:
-    task[f"{condition}_condition_avrgRelativeEditDistance_ofUnrejected"] = None
-    task[f"{condition}_condition_avrgSize_ofUnrejected"] = None
     editDistances2 = [  D for (v,D) in zip(baseEvaluationz,editDistansez) if v == 'accepted' or v=='too_weak' or v=='too_strong' ]
     N = len(editDistances2)
     if N>0:
@@ -249,28 +250,10 @@ def evaluate_task_result(task: Dict, condition: str):
     task[f"{condition}_condition_baseEvaluation"] = 'NOT accepted'
     task[f"{condition}_condition_evaluation"] = 'NOT accepted'
     
-def print_acceptance_rate(tasks: Dict[str,Dict]):
 
+def mk_results_summary(tasks: Dict[str,Dict]):
 
-    """
-    editDistances1 = [ task["pre_condition_accepted_completion_editDistance"]["relativeDistance"] 
-                            for task in tasks.values() 
-                            if task["pre_condition_baseEvaluation"] == 'accepted']
-    if len(editDistances1)==0:
-        editDistances1 = None
-    else:
-        editDistances1 = sum(editDistances1)/(0.0 + len(editDistances1))
-    
-    editDistances2 = [ task["pre_condition_avrgRelativeEditDistance_ofUnrejected"]
-                            for task in tasks.values() 
-                            if task["pre_condition_avrgRelativeEditDistance_ofUnrejected"] != None ]
-    if len(editDistances2)==0:
-        editDistances2 = None
-    else:
-        editDistances2 = sum(editDistances2)/(0.0 + len(editDistances2))
-    """
-
-    def worker(condType): # pre or post
+    def worker(summary,condType): # pre or post
         basetests_evaluations = [ task[condType + "_condition_baseEvaluation"] for task in tasks.values()]
         alltests_evaluations = [ task[condType + "_condition_evaluation"] for task in tasks.values()]
         basetests_evaluations = [ r for r in basetests_evaluations if r != None]
@@ -279,29 +262,73 @@ def print_acceptance_rate(tasks: Dict[str,Dict]):
         counterBase = Counter(basetests_evaluations)
         counterAll  = Counter(alltests_evaluations)
 
-        totB = counterBase.total()
-        print(f"   #{condType}-cond checked with base-tests = {totB}")
-        N1 = counterBase["accepted"]
-        percent1 = 0 if totB==0 else 100*N1/totB
-        print(f"   accepted: {N1} ({percent1}%)")
-        N2 = counterBase["NOT accepted"]
-        percent2 = 0 if totB==0 else 100*N2/totB
-        print(f"   NOT accepted: {N2} ({percent2}%)")
+        summary["#tasks"] = totB = counterBase.total()
+        summary["accepted by base-tests"] = counterBase["accepted"]
+        summary["accepted by all-tests"] = counterAll["accepted"]
+        
+        editDistances1 = [ task[condType + "_condition_accepted_completion_editDistance"]["relativeDistance"] 
+                            for task in tasks.values() 
+                            if task[condType + "_condition_baseEvaluation"] == 'accepted']
+        if len(editDistances1)==0:
+            editDistances1 = None
+        else:
+            editDistances1 = sum(editDistances1)/(0.0 + len(editDistances1))
+
+        summary["avrg-accepted-rel-lev"] = editDistances1
+
+        editDistances2 = [ task[condType + "_condition_avrgRelativeEditDistance_ofUnrejected"] for task in tasks.values() ]
+        editDistances2 = [ d for d in editDistances2 if d != None ]
+        if len(editDistances2)==0:
+            editDistances2 = None
+        else:
+            editDistances2 = sum(editDistances2)/(0.0 + len(editDistances2))
+
+        summary["avrg-nonRejecteds-rel-lev"] = editDistances2
+
+        return summary
     
-        totA = counterAll.total()
-        print(f"   #{condType}-cond checked with all-tests = {totA}")
-        N3 = counterAll["accepted"]
-        percent3 = 0 if totA==0 else 100*N3/totA
-        print(f"   accepted: {N3} ({percent3}%)")
-        N4 = counterAll["NOT accepted"]
-        percent4 = 0 if totA==0 else 100*N4/totA
-        print(f"   NOT accepted: {N4} ({percent4}%)")
+
+    return (worker({},"pre"), worker({},"post"))
+
+def write_evaluation_summaries(precond_evaluation_summary, 
+                               postcond_evaluation_summary,
+                               reportfile_basename):
+
+    def worker(summary,condType): # pre or post
+        tot = summary["#tasks"]
+        N1 = summary["accepted by base-tests"]
+        N2 = summary["accepted by all-tests"]
+        lev1 = summary["avrg-accepted-rel-lev"]
+        lev2 = summary["avrg-nonRejecteds-rel-lev"]
+        percent1 = 0 if tot==0 else 100*N1/tot
+        percent2 = 0 if tot==0 else 100*N2/tot
+
+        print(f"   ##{condType}-cond : {tot}")
+        print(f"     accepted by base-tests: {N1} ({percent1}%)")
+        print(f"     accepted by all-tests: {N2} ({percent2}%)")
+        print(f"     avrg-accepted-rel-lev: {lev1}")
+        print(f"     avrg-nonRejecteds-rel-lev: {lev2}")
+
+        if reportfile_basename == None: return
+
+        summaryfile = reportfile_basename.replace("evaluation","summary") + ".txt"
+
+        with open(summaryfile,'a') as F:
+            F.write(f"##{condType}-cond\n")
+            F.write(f"  #tasks:{tot}\n")
+            F.write(f"  accepted:{N1}\n")
+            F.write(f"  correct:{N2}\n")
+            F.write(f"  avrg-accepted-rel-lev:{lev1}\n")
+            F.write(f"  avrg-nonRejecteds-rel-lev:{lev2}\n")
+
+    worker(precond_evaluation_summary,"pre")
+    worker(postcond_evaluation_summary,"post")
 
 
-def write_evaluation_report(tasks: Dict[str,Dict], reportfile:str):
+def write_evaluation_report(tasks: Dict[str,Dict], reportfile_basename:str):
     
-    if reportfile == None: return
-
+    if reportfile_basename == None: return
+    reportfile = reportfile_basename + ".csv"
     with open(reportfile,'w') as f:
         
         def worker(task,baseTestsVerdict,allTestsVerdict,conditionType): # conditionType is either pre or post
@@ -332,14 +359,13 @@ def write_evaluation_report(tasks: Dict[str,Dict], reportfile:str):
             worker(task,task["post_condition_baseEvaluation"],task["post_condition_evaluation"],"post")
 
 
-def evaluate_tasks_results(tasks: Dict[str,Dict], reportfile_basename:str) -> None:
+def evaluate_tasks_results(tasks: Dict[str,Dict], reportfile_basename:str) :
     for task in tasks:
         task_dict = tasks[task]
         evaluate_task_result(task_dict, "pre")
         evaluate_task_result(task_dict, "post")
-
-    if reportfile_basename != None:
-        write_evaluation_report(tasks,reportfile_basename + ".csv")
-
-    print_acceptance_rate(tasks)
+    summaries = mk_results_summary(tasks)
+    write_evaluation_report(tasks,reportfile_basename)
+    write_evaluation_summaries(summaries[0],summaries[1],reportfile_basename)
+    return summaries
 
