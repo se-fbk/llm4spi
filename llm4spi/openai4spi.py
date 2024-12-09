@@ -162,28 +162,20 @@ def generate_task_result(
 
     The creation of the prompt is coded in the module Prompting. 
     """
-    pre_condition_prompt = create_prompt(task, condition_type="pre", prompt_type=prompt_type)
-    task["pre_condition_prompt"] = pre_condition_prompt
-    task["pre_condition_raw_responses"] = None
-    task["pre_condition_completions"]   = None
-    if pre_condition_prompt != None:
-        # note that this gives one or more answers, in a list:
-        pre_completions = AI.completeIt(allowMultipleAnswers,pre_condition_prompt)
-        task["pre_condition_raw_responses"] = pre_completions
-        preCondHeader = task["pre_condition_incomplete"]
-        task["pre_condition_completions"] = [ fix_completionString(preCondHeader,rawAnswer) for rawAnswer in pre_completions ]
-
-    post_condition_prompt = create_prompt(task, condition_type="post", prompt_type=prompt_type)
-    task["post_condition_prompt"] = post_condition_prompt
-    task["post_condition_raw_responses"] = None
-    task["post_condition_completions"] = None
-    if post_condition_prompt != None:
-        # note that this gives one or more answers, in a list:
-        post_completions = AI.completeIt(allowMultipleAnswers,post_condition_prompt)
-        task["post_condition_raw_responses"] = post_completions
-        postCondHeader = task["post_condition_incomplete"]
-        task["post_condition_completions"] = [ fix_completionString(postCondHeader,rawAnswer) for rawAnswer in post_completions ]
-
+    def worker(condType): # pre or post
+        prompt = create_prompt(task, condition_type=condType, prompt_type=prompt_type)
+        task[condType + "_condition_prompt"] = prompt
+        task[condType + "_condition_raw_responses"] = None
+        task[condType + "_condition_completions"]   = None
+        if prompt != None:
+            # note that this gives one or more answers, in a list:
+            completions = AI.completeIt(allowMultipleAnswers,prompt)
+            task[condType + "_condition_raw_responses"] = completions
+            header = task[condType + "_condition_incomplete"]
+            task[condType + "_condition_completions"] = [ fix_completionString(header,rawAnswer) for rawAnswer in completions ]
+  
+    worker("pre")
+    worker("post")
     return task
 
 class MyOpenAIClient(PromptResponder):
@@ -228,7 +220,8 @@ if __name__ == '__main__':
 
     dataset = ZEROSHOT_DATA
     ROOT = os.path.dirname(os.path.abspath(__file__))
-    dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "x.json")
+    dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "y.json")
+    #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "x.json")
     #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
 
     generate_results(myAIclient,
@@ -236,7 +229,7 @@ if __name__ == '__main__':
                      specificProblem = None,
                      experimentName = "gpt3.5",     
                      enableEvaluation=True, 
-                     allowMultipleAnswers=10,
+                     allowMultipleAnswers=5,
                      prompt_type="usePrgDesc"
                      #prompt_type="cot2"
                      )
