@@ -40,7 +40,7 @@ def generate_results(
         enableEvaluation: bool,
         allowMultipleAnswers: int,
         prompt_type: str        
-        ) -> None:
+        ) -> tuple :
     """
     The general API for evaluating an LLM/AI in its ability to construct pre- and post-conditions
     from their informal descriptions. The AI is generically represented by an PromptResponder-object,
@@ -90,9 +90,9 @@ def generate_results(
     current_date = (datetime.now()).strftime("%d_%m_%Y_%H_%M_%S")
 
     time2 = time.time()
+    reportfile_basename = f"results/{experimentName}_evaluation_{prompt_type}_{current_date}"
     if enableEvaluation:
-        reportfile_basename = f"results/{experimentName}_evaluation_{prompt_type}_{current_date}"
-        evaluate_tasks_results(tasks,reportfile_basename)
+        (precond_evalSummary,postcond_evalSummary) = evaluate_tasks_results(tasks,reportfile_basename)
         results = [{
             "task_id": tasks[task]["task_id"],
             "pre_condition_prompt" : tasks[task]["pre_condition_prompt"],
@@ -108,6 +108,7 @@ def generate_results(
             } for task in tasks]
 
     else:
+        (precond_evalSummary,postcond_evalSummary) = (None,None)
         results = [{
             "task_id": tasks[task]["task_id"],
             "pre_condition_prompt" : tasks[task]["pre_condition_prompt"],
@@ -120,16 +121,30 @@ def generate_results(
     timeSpentAnalysis = time.time() - time2
 
     # Saving raw responses and evaluation results in a json-file:
-    write_jsonl(f"results/{experimentName}_model_responses_{prompt_type}_{current_date}.jsonl", results)
+    write_jsonl(f"results/{experimentName}_all_{prompt_type}_{current_date}.jsonl", results)
 
     overallTime = time.time() - time0
+
+    runtimeInfo = {
+        "time loading data" : timeSpentReadingData,
+        "time AI" : timeSpentAI,
+        "time analysis" : timeSpentAnalysis,
+        "time all" : overallTime
+    }
+
+    runtimeInfofile = reportfile_basename.replace("evaluation","runtime") + ".txt"
+    with open(runtimeInfofile,'w') as F:
+        F.write(f"time loading data:{timeSpentReadingData}\n")
+        F.write(f"time AI:{timeSpentAI}\n")
+        F.write(f"time analysis:{timeSpentAnalysis}\n")
+        F.write(f"time all:{overallTime}")
 
     print(f"   time loading data: {timeSpentReadingData}")
     print(f"   time AI: {timeSpentAI}")
     print(f"   time analysis: {timeSpentAnalysis}")
     print(f"   time all: {overallTime}")
     
-    return
+    return (precond_evalSummary,postcond_evalSummary,runtimeInfo)
 
 
 def fix_completionString(header:str, completion:str) -> str :

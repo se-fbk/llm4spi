@@ -251,7 +251,7 @@ def evaluate_task_result(task: Dict, condition: str):
     task[f"{condition}_condition_evaluation"] = 'NOT accepted'
     
 
-def mk_results_summary(tasks: Dict[str,Dict]):
+def mk_results_summary(tasks: Dict[str,Dict]) -> tuple :
 
     def worker(summary,condType): # pre or post
         basetests_evaluations = [ task[condType + "_condition_baseEvaluation"] for task in tasks.values()]
@@ -359,7 +359,7 @@ def write_evaluation_report(tasks: Dict[str,Dict], reportfile_basename:str):
             worker(task,task["post_condition_baseEvaluation"],task["post_condition_evaluation"],"post")
 
 
-def evaluate_tasks_results(tasks: Dict[str,Dict], reportfile_basename:str) :
+def evaluate_tasks_results(tasks: Dict[str,Dict], reportfile_basename:str) -> tuple :
     for task in tasks:
         task_dict = tasks[task]
         evaluate_task_result(task_dict, "pre")
