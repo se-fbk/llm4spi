@@ -7,6 +7,8 @@ from typing import Dict
 import textwrap
 import data
 from collections import Counter
+import time
+from func_timeout import func_timeout, FunctionTimedOut
 import myconfig
 import similarity
 
@@ -65,18 +67,20 @@ def compare_results(expected: list, predicted: list) -> str:
     return "failed"
     
 
-def try_check_pre(test_case, task_id):
+def try_check_condition(test_case, task_id, condType): # pre or post
+    def runit(tc):
+        result = eval(f"check_{condType}_{task_id}(*tc)")
+        return result
+    
     try:
-        result = eval(f"check_pre_{task_id}(*test_case)")
-    except:
+        #result = eval(f"check_post_{task_id}(*test_case)")
+        # run the pre/post-cond in the testcase; impose time out too:
+        result = func_timeout(myconfig.RUN_SINGLE_TESTCASE_TIMEOUT, runit, args=[test_case])
+    except FunctionTimedOut:
+        print(">>> An AI solution execution on a test-case is killed due to timed out.")
         return "failed"
-    return result
-
-
-def try_check_post(test_case, task_id):
-    try:
-        result = eval(f"check_post_{task_id}(*test_case)")
-    except:
+    except Exception as e:
+        #print(f">>> CRASH {e}")
         return "failed"
     return result
 
@@ -202,11 +206,11 @@ def evaluate_task_result(task: Dict, condition: str):
     
         # running the test-cases on the AI's function; this may fail too:
         if (condition == "pre"):
-            completion_resultsBase = [try_check_pre(test_case, task["task_id"]) for test_case in test_casesBase]
-            completion_resultsValidation = [try_check_pre(test_case, task["task_id"]) for test_case in test_casesValidation]
+            completion_resultsBase = [try_check_condition(test_case, task["task_id"],"pre") for test_case in test_casesBase]
+            completion_resultsValidation = [try_check_condition(test_case, task["task_id"],"pre") for test_case in test_casesValidation]
         else:
-            completion_resultsBase = [try_check_post(test_case, task["task_id"]) for test_case in test_casesBase]
-            completion_resultsValidation = [try_check_post(test_case, task["task_id"]) for test_case in test_casesValidation]
+            completion_resultsBase = [try_check_condition(test_case, task["task_id"],"post") for test_case in test_casesBase]
+            completion_resultsValidation = [try_check_condition(test_case, task["task_id"],"post") for test_case in test_casesValidation]
 
         print(complete_function)
 
@@ -262,8 +266,14 @@ def mk_results_summary(tasks: Dict[str,Dict]) -> tuple :
         counterBase = Counter(basetests_evaluations)
         counterAll  = Counter(alltests_evaluations)
 
+        zzz = [ task[condType + "_condition_baseEvaluations"] for task in tasks.values()]
+        weakAccepts = [ baseEvals for baseEvals in zzz 
+                            if baseEvals != None 
+                               and len([1 for v in baseEvals if v == 'accepted' or v=='too_weak' or v=='too_strong']) > 0   ]
+
         summary["#tasks"] = totB = counterBase.total()
         summary["accepted by base-tests"] = counterBase["accepted"]
+        summary["weakly accepted by base-tests"] = len(weakAccepts)
         summary["accepted by all-tests"] = counterAll["accepted"]
         
         editDistances1 = [ task[condType + "_condition_accepted_completion_editDistance"]["relativeDistance"] 
@@ -296,18 +306,22 @@ def write_evaluation_summaries(precond_evaluation_summary,
 
     def worker(summary,condType): # pre or post
         tot = summary["#tasks"]
-        N1 = summary["accepted by base-tests"]
-        N2 = summary["accepted by all-tests"]
+        N1  = summary["accepted by base-tests"]
+        N1b = summary["weakly accepted by base-tests"]
+        N2  = summary["accepted by all-tests"]
+        
         lev1 = summary["avrg-accepted-rel-lev"]
         lev2 = summary["avrg-nonRejecteds-rel-lev"]
         percent1 = 0 if tot==0 else 100*N1/tot
+        percent1b = 0 if tot==0 else 100*N1b/tot
         percent2 = 0 if tot==0 else 100*N2/tot
 
         print(f"   ##{condType}-cond : {tot}")
-        print(f"     accepted by base-tests: {N1} ({percent1}%)")
-        print(f"     accepted by all-tests: {N2} ({percent2}%)")
-        print(f"     avrg-accepted-rel-lev: {lev1}")
-        print(f"     avrg-nonRejecteds-rel-lev: {lev2}")
+        print(f"     accepted by base-tests       : {N1} ({percent1}%)")
+        print(f"     weakly accepted by base-tests: {N1b} ({percent1b}%)")
+        print(f"     accepted by all-tests        : {N2} ({percent2}%)")
+        print(f"     avrg-accepted-rel-lev        : {lev1}")
+        print(f"     avrg-nonRejecteds-rel-lev    : {lev2}")
 
         if reportfile_basename == None: return
 
@@ -317,6 +331,7 @@ def write_evaluation_summaries(precond_evaluation_summary,
             F.write(f"##{condType}-cond\n")
             F.write(f"  #tasks:{tot}\n")
             F.write(f"  accepted:{N1}\n")
+            F.write(f"  waekly-accepted:{N1b}\n")
             F.write(f"  correct:{N2}\n")
             F.write(f"  avrg-accepted-rel-lev:{lev1}\n")
             F.write(f"  avrg-nonRejecteds-rel-lev:{lev2}\n")
@@ -344,7 +359,15 @@ def write_evaluation_report(tasks: Dict[str,Dict], reportfile_basename:str):
                 solutionLength = ''
                 editDistance = ''
                 relativeEditDistance = ''
-            z = f"{tId},{tId}-{conditionType},{baseTestsVerdict},{allTestsVerdict},{proposalIndex},{solutionLength},{editDistance},{relativeEditDistance}"
+
+            # check if there is an AI proposal which is not rejected; is so we have at least
+            # a weak-accpetance candidate:
+            weak_acceptance = len([ 1 for v in task[conditionType + "_condition_baseEvaluations"] 
+                                      if v=='accepted' or v=='too_weak' or v=='too_strong' ]) > 0
+            
+            weak_acceptance = 'accepted' if weak_acceptance else 'NOT accepted'
+            
+            z = f"{tId},{tId}-{conditionType},{baseTestsVerdict},{weak_acceptance},{allTestsVerdict},{proposalIndex},{solutionLength},{editDistance},{relativeEditDistance}"
             avrgLen_nonRejected = task[conditionType + "_condition_avrgSize_ofUnrejected"]
             if avrgLen_nonRejected == None: avrgLen_nonRejected = ''
             avrgRdist_nonRejected = task[conditionType + "_condition_avrgRelativeEditDistance_ofUnrejected"]
@@ -352,7 +375,7 @@ def write_evaluation_report(tasks: Dict[str,Dict], reportfile_basename:str):
             z = z + f",{avrgLen_nonRejected},{avrgRdist_nonRejected}\n"
             f.write(z)
         
-        f.write("task-id,task,base-test,all-test,accepted-index,accepted-len,accepted-lev,accepted-relative-lev,nonrejecteds-avrg-len,nonrejecteds-avrg-rel-lev\n")        
+        f.write("task-id,task,base-test-acceptance,weak-acceptance,all-test-acceptance,accepted-index,accepted-len,accepted-lev,accepted-relative-lev,nonrejecteds-avrg-len,nonrejecteds-avrg-rel-lev\n")        
         for tId in tasks:
             task = tasks[tId]
             worker(task,task["pre_condition_baseEvaluation"],task["pre_condition_evaluation"],"pre")

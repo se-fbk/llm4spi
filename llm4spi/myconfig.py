@@ -11,3 +11,4 @@
 # Else, only base1 will be used as the base-tests.
 #
 CONFIG_USE_SECOND_TESTSUITE_AS_BASETESTS_TOO = True
+RUN_SINGLE_TESTCASE_TIMEOUT = 10 # in seconds

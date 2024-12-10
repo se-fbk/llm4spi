@@ -235,8 +235,8 @@ if __name__ == '__main__':
 
     dataset = ZEROSHOT_DATA
     ROOT = os.path.dirname(os.path.abspath(__file__))
-    dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "y.json")
-    #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "x.json")
+    #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "y.json")
+    dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "x.json")
     #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
 
     generate_results(myAIclient,
@@ -244,7 +244,7 @@ if __name__ == '__main__':
                      specificProblem = None,
                      experimentName = "gpt3.5",     
                      enableEvaluation=True, 
-                     allowMultipleAnswers=5,
+                     allowMultipleAnswers=10,
                      prompt_type="usePrgDesc"
                      #prompt_type="cot2"
                      )
