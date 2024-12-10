@@ -207,6 +207,7 @@ class MyOpenAIClient(PromptResponder):
         completion = self.client.chat.completions.create(
             #model = "gpt-3.5-turbo",
             model = self.model,
+            temperature=0.7,
             n = multipleAnswer,
             messages=[
                 {
