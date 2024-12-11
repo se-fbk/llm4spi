@@ -26,14 +26,14 @@ class MyGPT4ALL_Client(PromptResponder):
                 A = self.client.generate(prompt, 
                                 temp=0.7,
                                 max_tokens=1024,
-                                repeat_penalty=2.0,
+                                repeat_penalty=1.5,
                                 repeat_last_n=multipleAnswer
                                 )
                 answers.append(A)
                 #answer2 = self.client.generate("Please only give the Python code, without comment.", max_tokens=1024)
                 # srtipping header seems difficult for some LLM :|
                 #answer3 = self.client.generate("Please remove the function header.", max_tokens=1024)
-        
+
         if self.DEBUG: 
             for k in range(len(answers)):
                 print(f">>> raw response {k}:\n {answers[k]}")
