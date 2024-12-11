@@ -26,6 +26,7 @@ class MyGPT4ALL_Client(PromptResponder):
                 A = self.client.generate(prompt, 
                                 temp=0.7,
                                 max_tokens=1024,
+                                repeat_penalty=1.0,
                                 repeat_last_n=multipleAnswer
                                 )
                 answers.append(A)
@@ -40,7 +41,7 @@ class MyGPT4ALL_Client(PromptResponder):
 
 
 if __name__ == '__main__':
-    #gpt4allClient = GPT4All("orca-mini-3b-gguf2-q4_0.gguf", model_path="/root/models", device="cuda:NVIDIA A16") #device is specific to cluster's GPU, change accordingly when run on a different computer
+    #gpt4allClient = GPT4All("orca-mini-3b-gguf2-q4_0.gguf", model_path="/root/models", device="cuda:NVIDIA A16 (3)") #device is specific to cluster's GPU, change accordingly when run on a different computer
     #gpt4allClient = GPT4All("orca-mini-3b-gguf2-q4_0.gguf", model_path="../../models", device="cpu")
     #gpt4allClient = GPT4All("mistral-7b-openorca.Q4_0.gguf", model_path="../../models", device="cpu")
     # this star-coder gives load-error
