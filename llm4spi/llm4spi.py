@@ -26,7 +26,7 @@ class MyGPT4ALL_Client(PromptResponder):
                 A = self.client.generate(prompt, 
                                 temp=0.7,
                                 max_tokens=1024,
-                                repeat_penalty=1.0,
+                                repeat_penalty=2.0,
                                 repeat_last_n=multipleAnswer
                                 )
                 answers.append(A)
