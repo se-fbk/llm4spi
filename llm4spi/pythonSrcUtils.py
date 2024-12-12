@@ -130,19 +130,24 @@ def fix_indentation(functionDefLine:str, body:str) -> str :
         functionDefLine = functionDefLine[4 : ]
     
     fun0 = 'def xxx_' + functionDefLine + '\n' + body
-
     try:
         exec(fun0,globals())
         # the function can be executed
+        print(">>> AI proposed function looks good.")
         return body
     except:
+        print(">>> AI proposed function is not well defined. Trying to fix indentation.")
         body2 = fix_indentation_worker(body)
         if body2 == None:
+            print("    Fixing FAILED.")
             return None
         try :
             fun1 = 'def yyy_' + functionDefLine + '\n' + body2
+            exec(fun1,globals())
+            print("    Indentation fixed.")
             return body2
         except :
+            print("    Fixing FAILED.")
             return None
 
 
@@ -243,7 +248,7 @@ def fix_indentation_worker(pythonStr:str) -> str :
                 # no matching if or elif found, we will pop until
                 # the deepest one, then add z in that scope
                 T = Scurrent
-                while T['ty'] != 'if' and T['ty'] != 'elif' and len(scopes) > 0 :
+                while len(scopes) > 0 and T['ty'] != 'if' and T['ty'] != 'elif'  :
                     pop(scopes)
                     T = current(scopes)
                 if len(scopes) == 0:

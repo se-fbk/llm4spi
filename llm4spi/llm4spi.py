@@ -20,23 +20,23 @@ class MyGPT4ALL_Client(PromptResponder):
     
     def completeIt(self, multipleAnswer:int, prompt:str) -> list[str]:
         if self.DEBUG: print(">>> PROMPT:\n" + prompt)
-        with self.client.chat_session():
-            answers = []
-            for k in range(multipleAnswer):
+        answers = []
+        for k in range(multipleAnswer):
+            # iterating inside the session does not work for various (open source) LLMs,
+            # they keep giving the same answer despite the repeat-penalty
+            with self.client.chat_session():
                 A = self.client.generate(prompt, 
                                 temp=0.7,
                                 max_tokens=1024,
-                                repeat_penalty=1.5,
-                                repeat_last_n=multipleAnswer
+                                repeat_penalty=1.5
+                                #repeat_last_n=multipleAnswer
                                 )
                 answers.append(A)
                 #answer2 = self.client.generate("Please only give the Python code, without comment.", max_tokens=1024)
                 # srtipping header seems difficult for some LLM :|
                 #answer3 = self.client.generate("Please remove the function header.", max_tokens=1024)
-
-        if self.DEBUG: 
-            for k in range(len(answers)):
-                print(f">>> raw response {k}:\n {answers[k]}")
+                if self.DEBUG: 
+                    print(f">>> raw response {k}:\n {A}")
         return answers
 
 
