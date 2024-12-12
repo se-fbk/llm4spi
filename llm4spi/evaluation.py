@@ -16,8 +16,9 @@ def compare_results(expected: list, predicted: list) -> str:
     """
     Returns a judgement after comparising the predicted results (results from running the function produced
     by AI) with of the expected results.
-    Note: None as a prediction will be interpreted as 'making no prediction', and
-          will be excluded from judgement.
+
+    Note: (**) the comparison can be configured (see myconfig.py) such that None as a prediction 
+          will be interpreted as 'making no prediction', and will be excluded from judgement.
           However, if all predications are None, a 'failed' judgement is returned.
 
     Judgement:
@@ -32,14 +33,16 @@ def compare_results(expected: list, predicted: list) -> str:
 
     """
     
-    # filter first the None-predictions
-    zz = [ (e,p) for (e,p) in zip(expected,predicted) if p != None ]
-    if len(zz) == 0:
-        # if all predictions are None, we declare "fail":
-        return "failed"
-    # only inspect the expecteds and predictions for which the predictions are not None:
-    expected   = [ e for (e,p) in zz ]
-    predicted = [ p for (e,p) in zz ]
+    if myconfig.IGNORE_NONE_PREDICTION: 
+        # special case (**) abobe
+        # filter first the None-predictions
+        zz = [ (e,p) for (e,p) in zip(expected,predicted) if p != None ]
+        if len(zz) == 0:
+            # if all predictions are None, we declare "fail":
+            return "failed"
+        # only inspect the expecteds and predictions for which the predictions are not None:
+        expected   = [ e for (e,p) in zz ]
+        predicted = [ p for (e,p) in zz ]
 
     #print(f">>> evaluated expecteds: {expected}")
     #print(f">>> evaluated predictions: {predicted}")

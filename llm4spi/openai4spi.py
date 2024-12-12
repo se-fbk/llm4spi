@@ -65,12 +65,12 @@ def generate_results(
        * (1) failed: if R crashes, or if it does not even return a boolean value, or if R
                      returns None on all test-cases.
        * (2) accepted: for every test-input x (provided in the dataset), R(x) = R0(x), where R0 is the provided
-                 reference solution. Test inputs for which R(x) gives None is interpreted as 'i don't know' and
-                 are ignored from the consideration.
-       * (3) too strong: if R is not accepted, and for every test input x, for which R(x) is not None we have
-                R(x) implies R0(x).
-       * (4) too weak:   if R is not accepted, and for every test input x, for which R(x) is not None we have
-                R0(x) implies R(x).
+                 reference solution. 
+                 NOTE: Depending on the configuration in myconfig.py, test inputs for which R(x) gives None 
+                 can be interpreted as 'i don't know' and are ignored from the consideration.
+                 This also applies for judgement (3) and (4) below.
+       * (3) too strong: if R is not accepted, and for every test input x, we have R(x) implies R0(x).
+       * (4) too weak:   if R is not accepted, and for every test input x, we have R0(x) implies R(x).
        * (5) rejected: none of the above judgement is the case.
 
     An evaluation report, along with the produced solutions from the AI are saved in files in /results.

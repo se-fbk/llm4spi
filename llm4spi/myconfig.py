@@ -12,3 +12,13 @@
 #
 CONFIG_USE_SECOND_TESTSUITE_AS_BASETESTS_TOO = True
 RUN_SINGLE_TESTCASE_TIMEOUT = 10 # in seconds
+
+# When "true", this will cause cases where AI pre/post-condition returns a None to be 
+# interpreted as "I don't know", and will be ignored in the evaluation against expected
+# return-value. E.g. this could be case when the AI has been explicitly instructred to indicate
+# signal this "i don't know".
+#
+# When the flag is "false", then the above special case does not apply. That is, the pre/post
+# conditon from AI is expected to return only a true or a false, and not any other type of
+# value.
+IGNORE_NONE_PREDICTION = False
