@@ -2,18 +2,7 @@
 
 Since LLMs are so smart, we wonder how good they are for generating 'formal' specifications. Or at least, specifications that can be executed so we can actually use them for checking the inputs and outputs of programs under test.
 
-In the current study we look into both commercial LLMs like OpenAI GPT as well open source LLMs for writing specifications in the form of pre- and post-conditions.
-
-On simple-specs, N=30 involving simple predicates on number-arithmetics, logical relations, and quantifiers.
-
-  |  | accepted |
-  |--|----------|
-  | GPT 3.5         | 80%  |
-  | GPT 4           | 87%  |
-  | Meta-Llama-3-8B | 40%  |
-  | Mistral-7B      | 37%  |
-  | Orca-mini-3B    | 10%  |
-
+The project provides a framework for assessing LLMs ability to extract formal pre- and post-conditions from a program's description. We can consider both commercial LLMs like OpenAI GPTs as well open source LLMs.
 
 Example prompt-1: _Give a Python program `Postcondition(x,y,z)` that checks whether the sum of x and y is zero or equal to z_
 
@@ -46,6 +35,28 @@ def Postcondition(joke: str) -> bool:
 joke = "Why don't scientists trust atoms? Because they make up everything!"
 print(Postcondition(joke))  # Output: True
 ```
+
+
+
+  |  | simple-specs-40 | HEx-26 |
+  |--|----------|----|
+  | GPT 4o          | 92.5%  |
+  | GPT 4 turbo          | 87.5%  |
+  | GPT 3.5 turbo        | 85%  | 57% (base-test1) / 73% |
+  | codellama-7b-instruct.Q8_0           | 27.5% (using prg-desc) / 35%  | 15% |
+  | codellama-13b-instruct.Q6_K          | 32.5%, but slow  |
+  | codellama-13b-instruct.Q4_0 | 30% |
+  | Meta-Llama-3-8B-Instruct.Q4_0 | 35% (using prg-desc) / 35%  |
+  | Llama-3-15b-Instruct-GLUED.Q6_K | 32.5%, but very slow |
+  | Meta-Llama-3-8B-Instruct (Groq, possibly 16f) |  | 48% using prg-desc |
+  | Meta-Llama-3-70B-Instruct (Groq, possibly 16f) |  | 65.5% using prg-desc |
+  | mistral-7b-instruct-v0.2.Q8_0      | 27.5%  |
+  | orca-2-13b.Q4_0   | 15%  |
+  | wizardcoder-python-13b-v1.0.Q4_K_M | 10%, very slow |
+  | gemma2-9b-it (Groq, possibly 16f) | 48% using prg-desc |
+
+
+
 
 #### Using GPT4All.
 

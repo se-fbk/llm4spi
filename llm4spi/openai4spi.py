@@ -9,7 +9,7 @@ from openai import OpenAI
 import os
 import time
 
-from data import ZEROSHOT_DATA, read_problems, write_jsonl
+from data import read_problems, write_jsonl
 from prompting import create_prompt
 from evaluation import evaluate_tasks_results
 from pythonSrcUtils import extractFunctionBody, extractPythonFunctionDef_fromMarkDownQuote, fix_indentation
@@ -205,7 +205,6 @@ class MyOpenAIClient(PromptResponder):
     def completeIt(self, multipleAnswer:int, prompt:str) -> list[str] :
         if self.DEBUG: print(">>> PROMPT:\n" + prompt)
         completion = self.client.chat.completions.create(
-            #model = "gpt-3.5-turbo",
             model = self.model,
             temperature=0.7,
             n = multipleAnswer,
@@ -230,19 +229,19 @@ if __name__ == '__main__':
     openAIclient = OpenAI(api_key=openai_api_key)
     modelId = "gpt-3.5-turbo"
     #modelId ="gpt-4-turbo"
+    #modelId ="gpt-4o" 
     #modelId ="o1-mini" 
+    
     myAIclient = MyOpenAIClient(openAIclient,modelId)
     myAIclient.DEBUG = True
 
-    dataset = ZEROSHOT_DATA
     ROOT = os.path.dirname(os.path.abspath(__file__))
-    #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "y.json")
-    dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "x.json")
+    #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "mini.json")
+    dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "HEx-compact.json")
     #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
 
     generate_results(myAIclient,
-                     dataset, 
-                     specificProblem = None,
+                     dataset, "HE50",
                      experimentName = "gpt3.5",     
                      enableEvaluation=True, 
                      allowMultipleAnswers=10,

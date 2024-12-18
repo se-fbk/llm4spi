@@ -105,4 +105,4 @@ if __name__ == '__main__':
     #print(parseProblem("../../llm4spiDatasets/data/human-eval-specs/P0/P0.py"))
     #print(parseProblems("../../llm4spiDatasets/data/human-eval-specs"))
 
-    writeProblemsAsJSONL("../../llm4spiDatasets/data/human-evalx-specs","../../llm4spiDatasets/data/x.json")
+    writeProblemsAsJSONL("../../llm4spiDatasets/data/human-evalx-specs","../../llm4spiDatasets/data/HEx-compact.json")

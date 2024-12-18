@@ -1,5 +1,6 @@
 #
 # Example code to evalute GPT4All LLMs on its ability to produce pre-/post-conditions.
+# See the main-function.
 #
 from datetime import datetime
 from gpt4all import GPT4All
@@ -7,7 +8,6 @@ from typing import Dict
 import time
 import os
 
-from data import ZEROSHOT_DATA
 from openai4spi import PromptResponder, generate_results
 
 class MyGPT4ALL_Client(PromptResponder):
@@ -51,14 +51,13 @@ if __name__ == '__main__':
     
     myAIclient = MyGPT4ALL_Client(gpt4allClient)
 
-    dataset = ZEROSHOT_DATA
     ROOT = os.path.dirname(os.path.abspath(__file__))
-    #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "x.json")
-    dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
+    dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "HEx-compact.json")
+    #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
 
     generate_results(myAIclient,
                      dataset, 
-                     specificProblem =  "arith_4",
+                     specificProblem =  "HE50",
                      experimentName = "orca-mini",     
                      enableEvaluation=True, 
                      allowMultipleAnswers=4,

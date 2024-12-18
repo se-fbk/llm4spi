@@ -226,8 +226,8 @@ def evaluate_task_result(task: Dict, condition: str):
                                             completion_resultsBase + completion_resultsValidation)
         baseEvaluationz.append(verdictBaseTest)
         fullEvaluationz.append(verdictFullTest)
-        print(f"Base ({verdictBaseTest}): {completion_resultsBase}")
-        print(f"Validation ({verdictFullTest}): {completion_resultsValidation}")
+        print(f"Base ({verdictBaseTest} (raw:{rawBaseEvalResult})): {completion_resultsBase}")
+        print(f"Validation ({verdictFullTest} wrt full-test): {completion_resultsValidation}")
     
     task[f"{condition}_condition_baseEvaluations"] = baseEvaluationz
     task[f"{condition}_condition_evaluations"] = fullEvaluationz
