@@ -78,7 +78,9 @@ if __name__ == '__main__':
             base_url="https://api.groq.com/openai/v1",
             api_key=groq_api_key)
     
-    modelId = "gemma2-9b-it"
+    # modelId = "gemma2-9b-it"
+    modelId = "llama3-70b-8192"
+    
     myAIclient = MyGroqClient(openAIclient,modelId)
     myAIclient.DEBUG = True
 
@@ -88,7 +90,7 @@ if __name__ == '__main__':
     #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
 
     generate_results(myAIclient,
-                     dataset, "HE50",
+                     dataset, "HE138",
                      experimentName = "groqxxx",     
                      enableEvaluation=True, 
                      allowMultipleAnswers=10,

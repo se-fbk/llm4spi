@@ -241,7 +241,7 @@ if __name__ == '__main__':
     #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
 
     generate_results(myAIclient,
-                     dataset, "HE50",
+                     dataset, "HE132",
                      experimentName = "gpt3.5",     
                      enableEvaluation=True, 
                      allowMultipleAnswers=10,
