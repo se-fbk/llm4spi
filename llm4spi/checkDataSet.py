@@ -122,7 +122,7 @@ def printField_InDataSet(data_file:str, id:str, idFieldName:str, fieldToPrint:st
 if __name__ == '__main__':
    dataset = data.ZEROSHOT_DATA
    ROOT = os.path.dirname(os.path.abspath(__file__))
-   #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "x.json")
+   #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "HEx-compact.json")
    dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
    checkPrePostSolutions_InDataSet(dataset)
    #printPrograms_InDataSet(dataset, whichProblem="5")

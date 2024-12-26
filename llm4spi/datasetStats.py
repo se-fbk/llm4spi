@@ -65,7 +65,7 @@ def printStats(datafile:str):
 
 if __name__ == '__main__':
    ROOT = os.path.dirname(os.path.abspath(__file__))
-   dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "x.json")
+   dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "HEx-compact.json")
    #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
    printStats(dataset)
   
