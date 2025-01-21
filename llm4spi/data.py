@@ -24,7 +24,7 @@ def stream_jsonl(filename: str) -> Iterable[Dict]:
 
 def write_jsonl(filename: str, data: Iterable[Dict], append: bool = False):
     """
-    Writes an iterable of dictionaries to jsonl
+    Writes an iterable of dictionaries to a jsonl (json-lines) file.
     """
     if append:
         mode = 'ab'
@@ -34,5 +34,17 @@ def write_jsonl(filename: str, data: Iterable[Dict], append: bool = False):
     with open(filename, mode) as fp:
         for x in data:
             fp.write((json.dumps(x) + "\n").encode('utf-8'))
+
+def write_json(filename: str, data: list[Dict], append: bool = False):
+    """
+    Writes an iterable of dictionaries to a json file.
+    """
+    if append:
+        mode = 'ab'
+    else:
+        mode = 'wb'
+    filename = os.path.expanduser(filename)
+    with open(filename, mode) as fp:
+        fp.write((json.dumps(data,indent=3)).encode('utf-8'))
 
    

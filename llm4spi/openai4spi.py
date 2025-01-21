@@ -9,7 +9,7 @@ from openai import OpenAI
 import os
 import time
 
-from data import read_problems, write_jsonl
+from data import read_problems, write_jsonl, write_json
 from prompting import create_prompt
 from evaluation import evaluate_tasks_results
 from pythonSrcUtils import extractFunctionBody, extractPythonFunctionDef_fromMarkDownQuote, fix_indentation
@@ -121,7 +121,8 @@ def generate_results(
     timeSpentAnalysis = time.time() - time2
 
     # Saving raw responses and evaluation results in a json-file:
-    write_jsonl(f"results/{experimentName}_all_{prompt_type}_{current_date}.jsonl", results)
+    #write_jsonl(f"results/{experimentName}_all_{prompt_type}_{current_date}.jsonl", results)
+    write_json(f"results/{experimentName}_all_{prompt_type}_{current_date}.json", results)
 
     overallTime = time.time() - time0
 
@@ -241,11 +242,12 @@ if __name__ == '__main__':
     #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
 
     generate_results(myAIclient,
-                     dataset, "HE132",
+                     dataset, 
+                     specificProblem = None,
                      experimentName = "gpt3.5",     
-                     enableEvaluation=True, 
-                     allowMultipleAnswers=10,
-                     prompt_type="usePrgDesc"
+                     enableEvaluation = True, 
+                     allowMultipleAnswers = 3,
+                     prompt_type = "usePrgDesc"
                      #prompt_type="cot2"
                      )
     
