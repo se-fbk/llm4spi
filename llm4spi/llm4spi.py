@@ -3,7 +3,7 @@
 # See the main-function.
 #
 from datetime import datetime
-from gpt4all import GPT4All
+
 from typing import Dict
 import time
 import os

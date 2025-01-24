@@ -18,6 +18,7 @@ Postcondition(x,y,z):
 
 Example prompt-2: _Give a Python program `Postcondition(joke:str)` that checks whether the joke is funny._ 😉
 
+
 Answer by OpenAI's GPT:
 
 ```python
