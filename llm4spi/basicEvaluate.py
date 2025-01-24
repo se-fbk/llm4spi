@@ -143,29 +143,19 @@ def evaluate_task_result(task: Dict, condition: str):
 
     task[f"{condition}_condition_reference_TestResults"]  = None
     task[f"{condition}_condition_candidates_TestResults"] = None
-    task[f"{condition}_condition_candidates_defCrashes"]  = None
-    task[f"{condition}_condition_candidates_base0_accept"]       = None
-    task[f"{condition}_condition_candidates_base0_tooWeak"]      = None
-    task[f"{condition}_condition_candidates_base0_tooStrong"]    = None
-    task[f"{condition}_condition_candidates_allBases_accept"]    = None
-    task[f"{condition}_condition_candidates_allBases_tooWeak"]   = None
-    task[f"{condition}_condition_candidates_allBases_tooStrong"] = None
-    task[f"{condition}_condition_candidates_allTests_accept"]    = None
-    task[f"{condition}_condition_candidates_allBasesAccept_avrg_editDist"] = None
-    task[f"{condition}_condition_candidates_allBases_tooWeakOrStrong_avrg_editDits"] = None
+    task[f"{condition}_condition_ResultsSummary"] = None
 
     # we first handle the case when the task pre- or post-condition
     # does not exists:
-    if not (f"{condition}_condition" in task) : 
+    if not (f"{condition}_condition_solution" in task) : 
         return
-    conditionDesc = task[f"{condition}_condition"]
-    if conditionDesc==None or conditionDesc=="":
-        return
-
-    # The task pre-/post- exists, we proceed. First we will execute the test suites on
-    # the solution pre/post-cond:
-
     solution_function = task[f"{condition}_condition_solution"]
+    if solution_function==None or solution_function=="":
+        return
+    
+    # The task pre-/post- exists, we proceed. First we will execute the test suites on
+    # the solution pre/post-cond
+
     # executing the solution-function def; not expecting it to fail
     #complete_solution_function = task[f"{condition}_condition_incomplete"] + "\n" + indented_solution_function_body
     try:
@@ -277,14 +267,18 @@ def evaluate_task_result(task: Dict, condition: str):
     allBases_tooStrong = len([ 1 for V in nonCrashes if V["allBases-verdict"]=="too_strong"])
     allTests_accept    = len([ 1 for V in nonCrashes if V["allsuites-verdict"]=="accepted"])
 
-    task[f"{condition}_condition_candidates_defCrashes"] = defCrashes
-    task[f"{condition}_condition_candidates_base0_accept"]       = base0_accept
-    task[f"{condition}_condition_candidates_base0_tooWeak"]      = base0_tooWeak
-    task[f"{condition}_condition_candidates_base0_tooStrong"]    =  base0_tooStrong
-    task[f"{condition}_condition_candidates_allBases_accept"]    =  allBases_accept
-    task[f"{condition}_condition_candidates_allBases_tooWeak"]   = allBases_tooWeak
-    task[f"{condition}_condition_candidates_allBases_tooStrong"] = allBases_tooStrong
-    task[f"{condition}_condition_candidates_allTests_accept"]    = allTests_accept
+    summary = {
+        "defCrashes"         : defCrashes,
+        "base0_accept"       : base0_accept,
+        "base0_tooWeak"      : base0_tooWeak,
+        "base0_tooStrong"    : base0_tooStrong,
+        "allBases_accept"    : allBases_accept,
+        "allBases_tooWeak"   : allBases_tooWeak,
+        "allBases_tooStrong" : allBases_tooStrong,
+        "allTests_accept"    : allTests_accept
+    }
+
+    task[f"{condition}_condition_ResultsSummary"] = summary
 
     print(f"   #chrashes = {defCrashes}")
     print(f"   #base0-accept        = {base0_accept}")   
@@ -297,11 +291,11 @@ def evaluate_task_result(task: Dict, condition: str):
 
     if allBases_accept > 0 :
         allBasesAccept_avrg_editDist = statistics.mean([ V["editDistance"] for V in nonCrashes if V["allBases-verdict"]=="accepted"])
-        task[f"{condition}_condition_candidates_allBasesAccept_avrg_editDist"] = allBasesAccept_avrg_editDist
+        summary["allBasesAccept_avrg_editDist"] = allBasesAccept_avrg_editDist
         print(f"   allBases-accept avrg-dist = {allBasesAccept_avrg_editDist}")  
     if allBases_tooWeak + allBases_tooStrong > 0 :
         allBases_tooWeakOrStrong_avrg_editDits = statistics.mean([ V["editDistance"] for V in nonCrashes if V["allBases-verdict"] in {"too_weak", "too_strong"}])
-        task[f"{condition}_condition_candidates_allBases_tooWeakOrStrong_avrg_editDits"] = allBases_tooWeakOrStrong_avrg_editDits
+        summary["allBases_tooWeakOrStrong_avrg_editDist"] = allBases_tooWeakOrStrong_avrg_editDits
         print(f"   allBases-too-weak-or-strong avrg-dist = {allBases_tooWeakOrStrong_avrg_editDits}")  
     
  
@@ -312,15 +306,15 @@ def mk_results_summary(tasks: Dict[str,Dict]) -> tuple :
     """
     def worker(summary,condType): # pre or post
 
-        hasResults = [T for T in tasks if T[f"{condType}_condition_reference_TestResults"] != None ]
+        hasResults = [ T[f"{condType}_condition_ResultsSummary"] for T in tasks if T[f"{condType}_condition_ResultsSummary"] != None ]
         
-        numOf_base0_accept       = len([ 1 for T in hasResults if T[f"{condType}_condition_candidates_base0_accept"] > 0])
-        numOf_base0_tooWeak      = len([ 1 for T in hasResults if T[f"{condType}_condition_candidates_base0_tooWeak"] > 0])
-        numOf_base0_tooStrong    = len([ 1 for T in hasResults if T[f"{condType}_condition_candidates_base0_tooStrong"] > 0])
-        numOf_allBases_accept    = len([ 1 for T in hasResults if T[f"{condType}_condition_candidates_allBases_accept"] > 0])
-        numOf_allBases_tooWeak   = len([ 1 for T in hasResults if T[f"{condType}_condition_candidates_allBases_tooWeak"] > 0])
-        numOf_allBases_tooStrong = len([ 1 for T in hasResults if T[f"{condType}_condition_candidates_allBases_tooStrong"] > 0])
-        numOf_allTests_accept    = len([ 1 for T in hasResults if T[f"{condType}_condition_candidates_allTests_accept"] > 0])
+        numOf_base0_accept       = len([ 1 for S in hasResults if S["base0_accept"] > 0])
+        numOf_base0_tooWeak      = len([ 1 for S in hasResults if S["base0_tooWeak"] > 0])
+        numOf_base0_tooStrong    = len([ 1 for S in hasResults if S["base0_tooStrong"] > 0])
+        numOf_allBases_accept    = len([ 1 for S in hasResults if S["allBases_accept"] > 0])
+        numOf_allBases_tooWeak   = len([ 1 for S in hasResults if S["allBases_tooWeak"] > 0])
+        numOf_allBases_tooStrong = len([ 1 for S in hasResults if S["allBases_tooStrong"] > 0])
+        numOf_allTests_accept    = len([ 1 for S in hasResults if S["allTests_accept"] > 0])
 
         summary["#tasks"] = len(hasResults)
         summary["accepted by base0-tests"] = numOf_base0_accept
@@ -331,16 +325,15 @@ def mk_results_summary(tasks: Dict[str,Dict]) -> tuple :
 
         summary["allBasesAccept_avrg_editDist"] = None
         if numOf_allBases_accept > 0 :
-            summary["allBasesAccept_avrg_editDist"] = statistics.mean([ T[f"{condType}_condition_candidates_allBasesAccept_avrg_editDist"] 
-                                for T in hasResults 
-                                if T[f"{condType}_condition_candidates_allBases_accept"] > 0 ])
+            summary["allBasesAccept_avrg_editDist"] = statistics.mean([ S["allBasesAccept_avrg_editDist"] 
+                                for S in hasResults 
+                                if S["allBases_accept"] > 0 ])
             
-        summary["allBasesTooWeakOrStrong_avrg_editDist"] = None
+        summary["allBases_tooWeakOrStrong_avrg_editDist"] = None
         if numOf_allBases_tooWeak + numOf_allBases_tooStrong > 0 :
-            summary["allBasesTooWeakOrStrong_avrg_editDist"] = statistics.mean([ T[f"{condType}_condition_candidates_allBases_tooWeakOrStrong_avrg_editDits"] 
-                                for T in hasResults 
-                                if T[f"{condType}_condition_candidates_allBases_tooWeak"] > 0
-                                   or T[f"{condType}_condition_candidates_allBases_tooStrong"] > 0
+            summary["allBases_tooWeakOrStrong_avrg_editDist"] = statistics.mean([ S["allBases_tooWeakOrStrong_avrg_editDist"] 
+                                for S in hasResults 
+                                if S["allBases_tooWeak"] > 0 or S["allBases_tooStrong"] > 0
                                 ])
 
         return summary
@@ -362,7 +355,7 @@ def write_evaluation_summaries(precond_evaluation_summary,
         N2  = summary["accepted by all-tests"] 
         
         lev1 = summary["allBasesAccept_avrg_editDist"]
-        lev2 = summary["allBasesTooWeakOrStrong_avrg_editDist"]
+        lev2 = summary["allBases_tooWeakOrStrong_avrg_editDist"]
 
         percent0  = 0 if tot==0 else 100*N0/tot
         percent0b = 0 if tot==0 else 100*N0b/tot
@@ -395,31 +388,51 @@ def write_perTask_summaries(tasks: Dict[str,Dict], reportfile_basename:str):
     Write per-task summary to a csv-file.
     """
 
+    numOfColumns = 13
+
     if reportfile_basename == None: return
     reportfile = reportfile_basename + ".csv"
     with open(reportfile,'w') as f:
         
         def worker(tId,task,condType): # condType is either pre or post
 
-            values = [  task[f"{condType}_condition_candidates_defCrashes"]   ,
-                    task[f"{condType}_condition_candidates_base0_accept"] ,      
-                    task[f"{condType}_condition_candidates_base0_tooWeak"] ,  
-                    task[f"{condType}_condition_candidates_base0_tooStrong"] ,   
-                    task[f"{condType}_condition_candidates_allBases_accept"] ,  
-                    task[f"{condType}_condition_candidates_allBases_tooWeak"] ,  
-                    task[f"{condType}_condition_candidates_allBases_tooStrong"] , 
-                    task[f"{condType}_condition_candidates_allTests_accept"] ,
-                    task[f"{condType}_condition_candidates_allBasesAccept_avrg_editDist"] , 
-                    task[f"{condType}_condition_candidates_allBases_tooWeakOrStrong_avrg_editDits"]
+            str = f"{tId},{tId}-{condType}"
+
+            taskSummary = task[f"{condType}_condition_ResultsSummary"]
+
+            if taskSummary == None:
+                str += ",failed"
+                N = numOfColumns - 3
+                for k in range(N):
+                    str += ","
+
+            else :
+                str += ",success"
+                values = [  taskSummary[f"defCrashes"] ,
+                    taskSummary["base0_accept"] ,      
+                    taskSummary["base0_tooWeak"] ,  
+                    taskSummary["base0_tooStrong"] ,   
+                    taskSummary["allBases_accept"] ,  
+                    taskSummary["allBases_tooWeak"] ,  
+                    taskSummary["allBases_tooStrong"] , 
+                    taskSummary["allTests_accept"] ,
+                    taskSummary["allBasesAccept_avrg_editDist"] , 
+                    taskSummary["allBases_tooWeakOrStrong_avrg_editDist"]
                 ]
 
-            str = f"{tId},{tId}-{condType}"
-            for v in values:
-                str += "," if v==None else f",{v}"
+                for v in values:
+                    str += "," if v==None else f",{v}"
+            
             str += "\n"
             f.write(str)
 
-        f.write("task-id,cond-type,crashing-candidates,base0-accept,base0-tooWeak,base0-tooStrong,allBases-accept,allBases-tooWeak,allBases-tooStrong,allTests-accept,allBases-accept-avrg-edit-dist,allBases-tooWeakOrStrong-avrg-edit-dist\n")
+        # printing the column-names:
+        f.write("task-id,cond-type")
+        f.write(",deploy,crashing-candidates")
+        f.write(",base0-accept,base0-tooWeak,base0-tooStrong")
+        f.write(",allBases-accept,allBases-tooWeak,allBases-tooStrong,allTests-accept")
+        f.write(",allBases-accept-avrg-edit-dist,allBases-tooWeakOrStrong-avrg-edit-dist\n")
+        # printing the rows:
         for tId in tasks:
             task = tasks[tId]
             worker(tId,task,"pre")

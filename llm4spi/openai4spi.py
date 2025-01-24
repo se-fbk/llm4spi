@@ -11,7 +11,7 @@ import time
 
 from data import read_problems, write_jsonl, write_json
 from prompting import create_prompt
-from evaluation import evaluate_tasks_results
+from basicEvaluate import evaluate_tasks_results
 from pythonSrcUtils import extractFunctionBody, extractPythonFunctionDef_fromMarkDownQuote, fix_indentation
 
 class PromptResponder:
@@ -84,7 +84,7 @@ def generate_results(
 
     time1 = time.time()
     for task in tasks:
-        generate_task_result(AI, tasks[task], allowMultipleAnswers, prompt_type=prompt_type)
+        generate_completions(AI, tasks[task], allowMultipleAnswers, prompt_type=prompt_type)
     timeSpentAI = time.time() - time1
 
     current_date = (datetime.now()).strftime("%d_%m_%Y_%H_%M_%S")
@@ -162,7 +162,7 @@ def fix_completionString(header:str, completion:str) -> str :
     return body1
 
     
-def generate_task_result(
+def generate_completions(
         AI: PromptResponder,
         task: Dict,
         allowMultipleAnswers: int,
@@ -170,8 +170,8 @@ def generate_task_result(
     """
     This function takes the desciption of a task/problem, represented as a dictionary.
     It then creates the completion prompt for the pre- and post-condition for the task. 
-    The prompt is sent to an AI model and the answer (the completion)
-    is collected. The answer is added into the task-dictionary.
+    The prompt is sent to an AI model and the answers (the completions, one or more)
+    are collected. The answers are added into the task-dictionary.
 
     The AI is generically represented by an object of class PromptResponder, which has
     a method that takes a prompt-string and returns a string (the answer).
