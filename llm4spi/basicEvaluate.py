@@ -254,7 +254,7 @@ def evaluate_task_result(task: Dict, condition: str):
         U["allsuites-verdict"] = compare_results(
                                         reference_results_Base0 + reference_results_Base1 + reference_results_Validation, 
                                         results_Base0 + results_Base1 + results_Validation)
-        U["editDistance"] = similarity.levenshteinDistance(solution_function,complete_function)
+        U["editDistance"] = similarity.levenshteinDistance(solution_function,complete_function)["relativeDistance"]
 
         if DEBUG:
             print(f"   Candidate {k}:")
@@ -281,7 +281,9 @@ def evaluate_task_result(task: Dict, condition: str):
         "allBases_accept"    : allBases_accept,
         "allBases_tooWeak"   : allBases_tooWeak,
         "allBases_tooStrong" : allBases_tooStrong,
-        "allTests_accept"    : allTests_accept
+        "allTests_accept"    : allTests_accept,
+        "allBasesAccept_avrg_editDist" : None,
+        "allBases_tooWeakOrStrong_avrg_editDist" : None
     }
 
     task[f"{condition}_condition_ResultsSummary"] = summary
@@ -312,36 +314,42 @@ def mk_results_summary(tasks: Dict[str,Dict]) -> tuple :
     """
     def worker(summary,condType): # pre or post
 
-        hasResults = [ T[f"{condType}_condition_ResultsSummary"] for T in tasks if T[f"{condType}_condition_ResultsSummary"] != None ]
+        hasResults = [ T[f"{condType}_condition_ResultsSummary"] for T in tasks.values() if T[f"{condType}_condition_ResultsSummary"] != None ]
         
         numOf_base0_accept       = len([ 1 for S in hasResults if S["base0_accept"] > 0])
         numOf_base0_tooWeak      = len([ 1 for S in hasResults if S["base0_tooWeak"] > 0])
         numOf_base0_tooStrong    = len([ 1 for S in hasResults if S["base0_tooStrong"] > 0])
+        numOf_base0_weakAccept   = len([ 1 for S in hasResults if S["base0_accept"] > 0 or S["base0_tooWeak"] > 0 or S["base0_tooStrong"] > 0])
         numOf_allBases_accept    = len([ 1 for S in hasResults if S["allBases_accept"] > 0])
         numOf_allBases_tooWeak   = len([ 1 for S in hasResults if S["allBases_tooWeak"] > 0])
         numOf_allBases_tooStrong = len([ 1 for S in hasResults if S["allBases_tooStrong"] > 0])
+        numOf_allBases_weakAccept = len([ 1 for S in hasResults if S["allBases_accept"] > 0 or S["allBases_tooWeak"] > 0 or S["allBases_tooStrong"] > 0])
         numOf_allTests_accept    = len([ 1 for S in hasResults if S["allTests_accept"] > 0])
 
         summary["#tasks"] = len(hasResults)
         summary["accepted by base0-tests"] = numOf_base0_accept
-        summary["weakly accepted by base0-tests"] = numOf_base0_accept + numOf_base0_tooWeak + numOf_base0_tooStrong
+        summary["weakly accepted by base0-tests"] = numOf_base0_weakAccept
         summary["accepted by all-base-tests"] = numOf_allBases_accept
-        summary["weakly accepted by all-base-tests"] = numOf_allBases_accept + numOf_allBases_tooWeak + numOf_allBases_tooStrong
+        summary["weakly accepted by all-base-tests"] = numOf_allBases_weakAccept
         summary["accepted by all-tests"] = numOf_allTests_accept
 
-        summary["allBasesAccept_avrg_editDist"] = None
-        if numOf_allBases_accept > 0 :
-            summary["allBasesAccept_avrg_editDist"] = statistics.mean([ S["allBasesAccept_avrg_editDist"] 
+        editDistances1 = [ S["allBasesAccept_avrg_editDist"] 
                                 for S in hasResults 
-                                if S["allBases_accept"] > 0 ])
-            
-        summary["allBases_tooWeakOrStrong_avrg_editDist"] = None
-        if numOf_allBases_tooWeak + numOf_allBases_tooStrong > 0 :
-            summary["allBases_tooWeakOrStrong_avrg_editDist"] = statistics.mean([ S["allBases_tooWeakOrStrong_avrg_editDist"] 
-                                for S in hasResults 
-                                if S["allBases_tooWeak"] > 0 or S["allBases_tooStrong"] > 0
-                                ])
+                                if S["allBasesAccept_avrg_editDist"] != None ]
+        if len(editDistances1) > 0 :
+            summary["allBasesAccept_avrg_editDist"] = statistics.mean(editDistances1)
+        else: 
+            summary["allBasesAccept_avrg_editDist"] = None
 
+        editDistances2 = [ S["allBases_tooWeakOrStrong_avrg_editDist"] 
+                                for S in hasResults 
+                                if S["allBases_tooWeakOrStrong_avrg_editDist"] != None
+                                ]
+        if len(editDistances2) > 0 :
+            summary["allBases_tooWeakOrStrong_avrg_editDist"] = statistics.mean(editDistances2)
+        else :
+            summary["allBases_tooWeakOrStrong_avrg_editDist"] = None
+        
         return summary
     
 
@@ -374,14 +382,15 @@ def write_wholeSet_summary(precond_evaluation_summary,
         percent2  = 0 if tot==0 else 100*N2/tot
 
         str = ""
-        str += f"   ##{condType}-cond : {tot}"
-        str += f"\n     accepted by base0-tests        : {N0} ({percent0}%)"
-        str += f"\n     weakly accepted by base0-tests : {N0} ({percent0b}%)"
-        str += f"\n     accepted by all-base-tests     : {N1} ({percent1}%)"
-        str += f"\n     weakly accepted by all-base-tests  : {N1b} ({percent1b}%)"
-        str += f"\n     accepted by ALL-tests (validation) : {N2} ({percent2}%)"
-        str += f"\n     avrg-edit-dist of accepted by all-base-tests               : {lev1}"
-        str += f"\n     avrg-edit-dist of too-weak or too-string on all-base-tests : {lev2}"
+        str += f"##{condType}-cond : {tot}"
+        str += f"\n   accepted by base0-tests        : {N0} ({percent0}%)"
+        str += f"\n   weakly accepted by base0-tests : {N0} ({percent0b}%)"
+        str += f"\n   accepted by all-base-tests     : {N1} ({percent1}%)"
+        str += f"\n   weakly accepted by all-base-tests  : {N1b} ({percent1b}%)"
+        str += f"\n   accepted by ALL-tests (validation) : {N2} ({percent2}%)"
+        str += f"\n   avrg-edit-dist of accepted by all-base-tests               : {lev1}"
+        str += f"\n   avrg-edit-dist of too-weak or too-strong on all-base-tests : {lev2}"
+        str += "\n"
 
         print(str)
 

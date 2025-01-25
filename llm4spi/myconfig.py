@@ -10,7 +10,11 @@
 # base1 and base2 as the base-tests (so, stronger ). 
 # Else, only base1 will be used as the base-tests.
 #
+#
+#  DEPRACATED!
 CONFIG_USE_SECOND_TESTSUITE_AS_BASETESTS_TOO = True
+
+
 RUN_SINGLE_TESTCASE_TIMEOUT = 10 # in seconds
 
 # When "true", this will cause cases where AI pre/post-condition returns a None to be 

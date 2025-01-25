@@ -137,6 +137,7 @@ def generate_results(
         F.write(f"time analysis:{timeSpentAnalysis}\n")
         F.write(f"time all:{overallTime}")
 
+    print( "** Time:")
     print(f"   time loading data: {timeSpentReadingData}")
     print(f"   time AI: {timeSpentAI}")
     print(f"   time analysis: {timeSpentAnalysis}")
