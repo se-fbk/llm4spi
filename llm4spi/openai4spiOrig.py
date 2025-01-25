@@ -40,7 +40,7 @@ def generate_results(
         enableEvaluation: bool,
         allowMultipleAnswers: int,
         prompt_type: str        
-        )  :
+        ) -> tuple :
     """
     The general API for evaluating an LLM/AI in its ability to construct pre- and post-conditions
     from their informal descriptions. The AI is generically represented by an PromptResponder-object,
@@ -91,30 +91,33 @@ def generate_results(
 
     time2 = time.time()
     reportfile_basename = f"results/{experimentName}_evaluation_{prompt_type}_{current_date}"
-    # gathering AI raw-responses and extracted completions:
-    results = [{
-            "task_id": tasks[Tid]["task_id"],
-            "pre_condition_prompt" : tasks[Tid]["pre_condition_prompt"],
-            "pre_condition_raw_responses": tasks[Tid]["pre_condition_raw_responses"],
-            "pre_condition_completions": tasks[Tid]["pre_condition_completions"],
-            "post_condition_prompt" : tasks[Tid]["post_condition_prompt"],
-            "post_condition_raw_responses": tasks[Tid]["post_condition_raw_responses"],
-            "post_condition_completions": tasks[Tid]["post_condition_completions"]
-            } for Tid in tasks]
-    
     if enableEvaluation:
-        # then do the evaluation
-        evaluate_tasks_results(tasks,reportfile_basename)
-        # add the eval-summaries and raw-test-results into the results:
-        for R in results :
-            Tid = R["task_id"]
-            task = tasks[Tid]
-            condTypes = ["pre","post"]
-            for condTy in condTypes:
-               R[f"{condTy}_condition_ResultsSummary"] = task[f"{condTy}_condition_ResultsSummary"]
-               R[f"{condTy}_condition_reference_TestResults"] = task[f"{condTy}_condition_reference_TestResults"]
-               R[f"{condTy}_condition_candidates_TestResults"] = task[f"{condTy}_condition_candidates_TestResults"]
-        
+        (precond_evalSummary,postcond_evalSummary) = evaluate_tasks_results(tasks,reportfile_basename)
+        results = [{
+            "task_id": tasks[task]["task_id"],
+            "pre_condition_prompt" : tasks[task]["pre_condition_prompt"],
+            "pre_condition_raw_responses": tasks[task]["pre_condition_raw_responses"],
+            "pre_condition_completions": tasks[task]["pre_condition_completions"],
+            "pre_condition_evaluations": tasks[task]["pre_condition_evaluations"],
+            "pre_condition_evaluation": tasks[task]["pre_condition_evaluation"],
+            "post_condition_prompt" : tasks[task]["post_condition_prompt"],
+            "post_condition_raw_responses": tasks[task]["post_condition_raw_responses"],
+            "post_condition_completions": tasks[task]["post_condition_completions"],
+            "post_condition_evaluations": tasks[task]["post_condition_evaluations"],
+            "post_condition_evaluation": tasks[task]["post_condition_evaluation"]
+            } for task in tasks]
+
+    else:
+        (precond_evalSummary,postcond_evalSummary) = (None,None)
+        results = [{
+            "task_id": tasks[task]["task_id"],
+            "pre_condition_prompt" : tasks[task]["pre_condition_prompt"],
+            "pre_condition_raw_responses": tasks[task]["pre_condition_raw_responses"],
+            "pre_condition_completions": tasks[task]["pre_condition_completions"],
+            "post_condition_prompt" : tasks[task]["post_condition_prompt"],
+            "post_condition_raw_responses": tasks[task]["post_condition_raw_responses"],
+            "post_condition_completions": tasks[task]["post_condition_completions"]
+            } for task in tasks]
     timeSpentAnalysis = time.time() - time2
 
     # Saving raw responses and evaluation results in a json-file:
@@ -141,7 +144,9 @@ def generate_results(
     print(f"   time AI: {timeSpentAI}")
     print(f"   time analysis: {timeSpentAnalysis}")
     print(f"   time all: {overallTime}")
-    # DONE
+    
+    return (precond_evalSummary,postcond_evalSummary,runtimeInfo)
+
 
 def fix_completionString(header:str, completion:str) -> str :
     """

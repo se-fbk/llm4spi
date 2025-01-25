@@ -11,6 +11,7 @@
 # Running a test-case on e.g. a candidate post-cond gives three possible outcomes: 
 #    (1) a value True is returned
 #    (2) a False is returned
+#    (3) failed, e.g. because the execution returned a non-boolean value, or it crashed.
 #
 # In addition to collecting the full test-results, some basic statistics will also be
 # calculated and provided.  
@@ -86,6 +87,11 @@ def compare_results(expected: list, predicted: list) -> str:
     
 
 def try_check_condition(test_case, task_id, condType): # pre or post
+    """
+    Run a single test-case on an AI-proposed solution. The solution is 
+    assumed to have been loaded into the memory, and is named
+    e.g. check_post_taskid, for post-condition.
+    """
     def runit(tc):
         result = eval(f"check_{condType}_{task_id}(*tc)")
         return result
@@ -341,9 +347,13 @@ def mk_results_summary(tasks: Dict[str,Dict]) -> tuple :
 
     return (worker({},"pre"), worker({},"post"))
 
-def write_evaluation_summaries(precond_evaluation_summary, 
+def write_wholeSet_summary(precond_evaluation_summary, 
                                postcond_evaluation_summary,
                                reportfile_basename):
+    """
+    Printing a summary of the whole evaluation (over all tasks),
+    and also save this summary in a file.
+    """
 
     def worker(summary,condType): # pre or post
 
@@ -396,6 +406,10 @@ def write_perTask_summaries(tasks: Dict[str,Dict], reportfile_basename:str):
         
         def worker(tId,task,condType): # condType is either pre or post
 
+            if not (f"{condType}_condition_solution" in task) : 
+                # the pre/post condition is not present, so no data is collected either:
+                return
+
             str = f"{tId},{tId}-{condType}"
 
             taskSummary = task[f"{condType}_condition_ResultsSummary"]
@@ -426,7 +440,7 @@ def write_perTask_summaries(tasks: Dict[str,Dict], reportfile_basename:str):
             str += "\n"
             f.write(str)
 
-        # printing the column-names:
+        # printing the column-names; there should be 13 of them ...
         f.write("task-id,cond-type")
         f.write(",deploy,crashing-candidates")
         f.write(",base0-accept,base0-tooWeak,base0-tooStrong")
@@ -437,7 +451,6 @@ def write_perTask_summaries(tasks: Dict[str,Dict], reportfile_basename:str):
             task = tasks[tId]
             worker(tId,task,"pre")
             worker(tId,task,"post")
-
 
 def evaluate_tasks_results(tasks: Dict[str,Dict], reportfile_basename:str)  :
     """
@@ -454,6 +467,6 @@ def evaluate_tasks_results(tasks: Dict[str,Dict], reportfile_basename:str)  :
         evaluate_task_result(T, "post")
     summaries = mk_results_summary(tasks)
     write_perTask_summaries(tasks,reportfile_basename)
-    write_evaluation_summaries(summaries[0],summaries[1],reportfile_basename)
+    write_wholeSet_summary(summaries[0],summaries[1],reportfile_basename)
     
 
