@@ -239,10 +239,10 @@ if __name__ == '__main__':
 
     generate_results(myAIclient,
                      dataset, 
-                     specificProblem = None,
+                     specificProblem = None ,
                      experimentName = "gpt3.5",     
                      enableEvaluation = True, 
-                     allowMultipleAnswers = 3,
+                     allowMultipleAnswers = 10,
                      prompt_type = "usePrgDesc"
                      #prompt_type="cot2"
                      )

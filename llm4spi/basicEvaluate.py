@@ -415,7 +415,8 @@ def write_perTask_summaries(tasks: Dict[str,Dict], reportfile_basename:str):
         
         def worker(tId,task,condType): # condType is either pre or post
 
-            if not (f"{condType}_condition_solution" in task) : 
+            labelx = f"{condType}_condition_solution"
+            if not (labelx in task) or task[labelx] == None or task[labelx] == "" : 
                 # the pre/post condition is not present, so no data is collected either:
                 return
 
