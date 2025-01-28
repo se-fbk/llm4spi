@@ -384,7 +384,7 @@ def write_wholeSet_summary(precond_evaluation_summary,
         str = ""
         str += f"##{condType}-cond : {tot}"
         str += f"\n   accepted by base0-tests        : {N0} ({percent0}%)"
-        str += f"\n   weakly accepted by base0-tests : {N0} ({percent0b}%)"
+        str += f"\n   weakly accepted by base0-tests : {N0b} ({percent0b}%)"
         str += f"\n   accepted by all-base-tests     : {N1} ({percent1}%)"
         str += f"\n   weakly accepted by all-base-tests  : {N1b} ({percent1b}%)"
         str += f"\n   accepted by ALL-tests (validation) : {N2} ({percent2}%)"
