@@ -194,7 +194,7 @@ class MyOpenAIClient(PromptResponder):
     """
     An instance of prompt-responder that uses openAI LLM as the backend model.
     """
-    def __init__(self,client: OpenAI, modelId:str):
+    def __init__(self, client: OpenAI, modelId:str):
         PromptResponder.__init__(self)
         self.client = client
         self.model = modelId 
@@ -239,7 +239,7 @@ if __name__ == '__main__':
 
     generate_results(myAIclient,
                      dataset, 
-                     specificProblem = None ,
+                     specificProblem = "HE0" ,
                      experimentName = "gpt3.5",     
                      enableEvaluation = True, 
                      allowMultipleAnswers = 10,

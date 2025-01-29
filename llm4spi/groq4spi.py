@@ -31,6 +31,7 @@ class MyGroqClient(PromptResponder):
         # to keep track of time, towards deciding to pause so as not
         # to exceed num of tokens/minute 
         self.t0 = None
+        self.maxNumOfTokensPerMiniteLIMIT = 6000 # pfff :(
     
     def completeIt(self, multipleAnswer:int, prompt:str) -> list[str] :
         if self.DEBUG: print(">>> PROMPT:\n" + prompt)
@@ -38,7 +39,6 @@ class MyGroqClient(PromptResponder):
         # Groq-side does not currently support multiple answers; so we will explicitly ask one at a time.
         #
         responses = []
-        maxNumOfTokensPerMiniteLIMIT = 6000 # pfff :(
         if self.t0 == None:
             self.t0 = time.time()
         totTokensSinceLastPause = 0
@@ -62,7 +62,7 @@ class MyGroqClient(PromptResponder):
                 print(f">>> raw response {k} (estimated #tokens {estimatedNumOfTokens}):\n {R}")
             totTokensSinceLastPause = totTokensSinceLastPause + estimatedNumOfTokens
             timeSinceLastPause = time.time() - self.t0
-            if multipleAnswer>1 and timeSinceLastPause >= 0.8*60 or totTokensSinceLastPause >= 0.8*maxNumOfTokensPerMiniteLIMIT:
+            if multipleAnswer>1 and timeSinceLastPause >= 0.8*60 or totTokensSinceLastPause >= 0.8 * self.maxNumOfTokensPerMiniteLIMIT:
                 # add pause untill one minute over:
                 sleepTime = max(5,60 - timeSinceLastPause)
                 if self.DEBUG: 

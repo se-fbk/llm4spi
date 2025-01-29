@@ -19,7 +19,7 @@ options = [
    ("provider",  "The name of the LLM provider, e.g. openAI. Mandatory."),
    ("model",     "The name of the LLM to use, e.g. gpt3.5. Mandatory."),
    ("benchmarkDir", "The folder where the benchmark is located. If not specified: ../../llm4spiDatasets/data"),
-   ("benchmark", "The name of the benchmark to target, e.g. simplespecs. Mandatory."),
+   ("benchmark", "The name of the benchmark-file to target, e.g. simplespecs.json. Mandatory."),
    ("prompt_type", "Specify the type of prompt to use. If not present, then usePrgDesc is used."),
    ("specificProblem", "If present specifies a single problem to test."),
    ("experimentName",  "The name of the experiment. Reports will be produced prefixed with this name."),

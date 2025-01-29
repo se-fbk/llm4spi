@@ -58,8 +58,17 @@ print(Postcondition(joke))  # Output: True
 
 
 
+## Required Python packages
 
-#### Using GPT4All.
+* To use OpenAI models: `pip install openai`
+* If you want to use Gpt4All: `pip install gpt4all`
+* To use Hugging Face models: `pip install huggingface-hub`
+
+## Datasets
+
+Need to be in a json-format with a structure compatible for llm4spi. TODO: describe the structure. Example: see `mini.json`.
+
+#### Some notes on using GPT4All
 
 You can use a [Docker-image with GPT4All installed](https://hub.docker.com/r/morgaine/llm4spi). The image has:
 
