@@ -79,7 +79,8 @@ if __name__ == '__main__':
             api_key=groq_api_key)
     
     # modelId = "gemma2-9b-it"
-    modelId = "llama3-70b-8192"
+    #modelId = "llama3-70b-8192"
+    modelId = "deepseek-r1-distill-llama-70b"
     
     myAIclient = MyGroqClient(openAIclient,modelId)
     myAIclient.DEBUG = True
@@ -90,8 +91,8 @@ if __name__ == '__main__':
     #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
 
     generate_results(myAIclient,
-                     dataset, "HE138",
-                     experimentName = "groqxxx",     
+                     dataset, "HE1",
+                     experimentName = "HE1-deepseek-r1-distill-llama-70b",     
                      enableEvaluation=True, 
                      allowMultipleAnswers=10,
                      prompt_type="usePrgDesc"

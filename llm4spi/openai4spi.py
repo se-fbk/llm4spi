@@ -201,19 +201,36 @@ class MyOpenAIClient(PromptResponder):
     
     def completeIt(self, multipleAnswer:int, prompt:str) -> list[str] :
         if self.DEBUG: print(">>> PROMPT:\n" + prompt)
-        completion = self.client.chat.completions.create(
-            model = self.model,
-            temperature=0.7,
-            n = multipleAnswer,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-                ]
-            )
-        N = min(multipleAnswer, len(completion.choices))
-        responses = [ completion.choices[k].message.content for k in range(N) ]
+
+        # some models limit the number of multiple-answers it could give:
+        maxMultipleAnswers = multipleAnswer
+        if self.model.startswith("o1") :
+            maxMultipleAnswers = 8
+        
+        # some models do not allow temperature to be set!!
+        xtemperature = 0.7
+        if self.model.startswith("o1") :
+            xtemperature = 1
+        
+        remainToDo = multipleAnswer
+        responses = []
+        while remainToDo > 0:
+            numberOfAnswersToAsk = min(remainToDo,maxMultipleAnswers)
+            completion = self.client.chat.completions.create(
+                model = self.model,
+                temperature = xtemperature,
+                n = numberOfAnswersToAsk,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                    ]
+                )
+            N = min(numberOfAnswersToAsk, len(completion.choices))
+            responses = responses + [ completion.choices[k].message.content for k in range(N) ]
+            remainToDo = remainToDo - numberOfAnswersToAsk
+
         if self.DEBUG: 
             for k in range(len(responses)):
                 print(f">>> raw response {k}:\n {responses[k]}")
@@ -225,10 +242,11 @@ if __name__ == '__main__':
     openai_api_key = os.environ.get('OPENAI_API_KEY') 
     openAIclient = OpenAI(api_key=openai_api_key)
     modelId = "gpt-3.5-turbo"
-    #modelId ="gpt-4-turbo"
+    #modelId ="gpt-4-turbo"  --->  this model is expensive!
     #modelId ="gpt-4o" 
-    #modelId ="o1-mini" 
-    
+    #modelId ="o1-preview"  #--> n should be <= 8
+    #modelId ="o3-mini"  --> not recognized (yet?)
+
     myAIclient = MyOpenAIClient(openAIclient,modelId)
     myAIclient.DEBUG = True
 
@@ -239,8 +257,8 @@ if __name__ == '__main__':
 
     generate_results(myAIclient,
                      dataset, 
-                     specificProblem = "HE0" ,
-                     experimentName = "gpt3.5",     
+                     specificProblem = "HE158" ,
+                     experimentName = "bla",     
                      enableEvaluation = True, 
                      allowMultipleAnswers = 10,
                      prompt_type = "usePrgDesc"

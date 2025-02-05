@@ -43,7 +43,7 @@ def checkPrePostSolutions_InDataSet(data_file: str) -> None :
       
       preSolution = None
 
-      if not ("pre_condition_solution" in P) :
+      if not ("pre_condition_solution" in P) or P["pre_condition_solution"] == "" :
          print(f"   pre-cond: none given.")
 
       else:
@@ -122,8 +122,8 @@ def printField_InDataSet(data_file:str, id:str, idFieldName:str, fieldToPrint:st
 if __name__ == '__main__':
    dataset = data.ZEROSHOT_DATA
    ROOT = os.path.dirname(os.path.abspath(__file__))
-   #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "HEx-compact.json")
-   dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
+   dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "HEx-compact.json")
+   #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "simple-specs.json")
    checkPrePostSolutions_InDataSet(dataset)
    #printPrograms_InDataSet(dataset, whichProblem="5")
    #printField_InDataSet("../../llm4spiDatasets/data/humaneval-reformatted.json","HumanEval/0","task_id","prompt")

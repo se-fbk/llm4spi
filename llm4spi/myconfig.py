@@ -11,7 +11,7 @@
 # Else, only base1 will be used as the base-tests.
 #
 #
-#  DEPRACATED!
+#  DEPRACATED! (not used anymore in the new evals)
 CONFIG_USE_SECOND_TESTSUITE_AS_BASETESTS_TOO = True
 
 
