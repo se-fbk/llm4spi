@@ -9,7 +9,7 @@ from openai import OpenAI
 import os
 import time
 
-from data import read_problems, write_jsonl, write_json
+from data import read_problems, write_json
 from prompting import create_prompt
 from basicEvaluate import evaluate_tasks_results
 from pythonSrcUtils import extractFunctionBody, extractPythonFunctionDef_fromMarkDownQuote, fix_indentation

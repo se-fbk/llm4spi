@@ -11,12 +11,13 @@ def read_problems(data_file: str) -> Dict[str, Dict]:
     """
     Parses data file content to task dictionary
     """
-    return {task["task_id"]: task for task in stream_jsonl(data_file)}
+    return {task["task_id"]: task for task in stream_json(data_file)}
 
 
-def stream_jsonl(filename: str) -> Iterable[Dict]:
+def stream_json(filename: str) -> Iterable[Dict]:
     """
-    Parses each jsonl line and yields it as a dictionary
+    Parses each the json-file describing the problems, and yields a list of problems,
+    each is described as a dictionary.
     """
     with open(filename, "r") as fp:
         return json.load(fp)

@@ -93,6 +93,8 @@ def try_check_condition(test_case, task_id, condType): # pre or post
     e.g. check_post_taskid, for post-condition.
     """
     def runit(tc):
+        # the 'tc' below should be {tc}, but it works too as below, accidentally, in this case,
+        # the way eval works...
         result = eval(f"check_{condType}_{task_id}(*tc)")
         return result
     
