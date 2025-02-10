@@ -9,12 +9,14 @@ from llm4spi import MyGPT4ALL_Client
 from groq4spi import MyGroqClient
 from openai import OpenAI
 from gpt4all import GPT4All
+from google import genai
+from google4spi import GoogleResponder
 
 DEBUG = True
 
 
 # available command-line options:
-providers = ["openAI", "gpt4all", "groq"]
+providers = ["openAI", "gpt4all", "groq", "gemini"]
 options = [
    ("provider",  "The name of the LLM provider, e.g. openAI. Mandatory."),
    ("model",     "The name of the LLM to use, e.g. gpt3.5. Mandatory."),
@@ -26,7 +28,10 @@ options = [
    ("enableEvaluation", "If present will enable or disable evaluation. If not present, evaluation is enabled."),
    ("allowMultipleAnswers", "If present specifies how many answers per problem are requested. If not present it is 1."),
    ("gpt4all_localModelPath", "If a local GPT4ALL model is used, this point to the folder where GPT4AALL models are placed. Default is ../../models"),
-   ("gpt4all_device", "If a local GPT4ALL model is used, this specifies to use cpu or gpu-id for running the model. if not specified, cpu is used.")
+   ("gpt4all_device", "If a local GPT4ALL model is used, this specifies to use cpu or gpu-id for running the model. if not specified, cpu is used."),
+   ("gemini_rpm", "Request per minute for Google Gemini models."),
+   ("gemini_tpm", "Tokens per minute for Google Gemini models."),
+   ("gemini_rpd", "Request per day for Google Gemini models.")
 ]
 
 helptxt = "python clispi.py [--option=arg]*\n"
@@ -47,6 +52,9 @@ def main(argv):
    allowMultipleAnswers_ = 1
    gpt4all_localModelPath_ = os.path.join(ROOT, "..", "..", "models") 
    gpt4all_device_ = "cpu"
+   gemini_rpm_ = 15
+   gemini_tpm_ = 1000000
+   gemini_rpd_ = 1500
    try:
       opts, args = getopt.getopt(argv,"h", [ o[0] + "=" for o in options])
    except getopt.GetoptError:
@@ -75,6 +83,9 @@ def main(argv):
          case "--allowMultipleAnswers" : allowMultipleAnswers_ = int(arg)
          case "--experimentName" : experimentName_ = arg
 
+         case "--gemini_rpm": gemini_rpm_ = int(arg)
+         case "--gemini_tpm": gemini_tpm_ = int(arg)
+         case "--gemini_rpd": gemini_rpd_ = int(arg)
 
    # create the client:
    match provider_ :
@@ -90,8 +101,13 @@ def main(argv):
           openAIclient = OpenAI(base_url="https://api.groq.com/openai/v1",
                                 api_key=groq_api_key)    
           myAIclient = MyGroqClient(openAIclient,model_)
+      case "gemini" :
+          gemini_api_key = os.environ.get('GEMINI_API_KEY')
+          geminiClient = genai.Client(api_key=gemini_api_key)
+          myAIclient = GoogleResponder(client=geminiClient, modelId=model_, rpm_limit=gemini_rpm_, tpm_limit=gemini_tpm_, rpd_limit=gemini_rpd_)
 
-   myAIclient.DEBUG = DEBUG 
+
+   myAIclient.DEBUG = DEBUG
 
    # run the analysis:
    dataset = os.path.join(benchmarkDir_, benchmark_)

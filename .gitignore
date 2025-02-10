@@ -1,3 +1,5 @@
 **/.DS_Store
 llm4spi/results/*
 llm4spi/__pycache__/*
+*venv*
+.idea
