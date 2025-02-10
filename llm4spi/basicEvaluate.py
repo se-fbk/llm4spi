@@ -102,6 +102,11 @@ def try_check_condition(test_case, task_id, condType): # pre or post
         #result = eval(f"check_post_{task_id}(*test_case)")
         # run the pre/post-cond in the testcase; impose time out too:
         result = func_timeout(myconfig.RUN_SINGLE_TESTCASE_TIMEOUT, runit, args=[test_case])
+        if result != None and type(result) != bool:
+            # some proposal returns a lambda-function!! which later gives a problem at the json serialization
+            # we'll override it here:
+            result = "not a boolean value"
+
     except FunctionTimedOut:
         print(">>> An AI solution execution on a test-case is killed due to timed out.")
         return "failed"
@@ -215,7 +220,7 @@ def evaluate_task_result(task: Dict, condition: str):
     #
 
     # get all the AI-completions, indent each one of them as well:
-    AI_completions = [ textwrap.indent(body,'    ') for body in task[f"{condition}_condition_completions"] ]
+    AI_completions = [ textwrap.indent(body,'    ') if body != None else '' for body in task[f"{condition}_condition_completions"] ]
     # now, evaliate each candidate-completion:
     tasks_results = [] 
 
