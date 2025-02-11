@@ -80,7 +80,8 @@ You can use a [Docker-image with GPT4All installed](https://hub.docker.com/r/mor
 
 ## Test Generation
 
-It is possible to generate test for programs used for pre/post condition checks generation using the [pynguin](https://www.pynguin.eu/) framework (required for this purpose). To do so use the scripts found inside the `llm4spi/testgen` folder.
+It is possible to generate test for programs used for pre/post condition checks generation using the [pynguin](https://www.pynguin.eu/) framework (required for this purpose). To use the pynguin framework the variable `PYNGUIN_DANGER_AWARE` should be set.
+To do so use the scripts found inside the `llm4spi/testgen` folder.
 * `llm4spiJsonConverter_testgen.py`: generates python scripts containing the program for which tests will be generated. \
 	Usage: \
       `python llm4spiJsonConverter_testgen.py </path/to/json> </folder/for/test/generation>`
