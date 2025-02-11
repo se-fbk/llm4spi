@@ -77,29 +77,3 @@ You can use a [Docker-image with GPT4All installed](https://hub.docker.com/r/mor
 * NVIDIA Container Toolkit installed
 * Vulkan SDK installed
 * GPT4All installed (as a Python package)
-
-## Test Generation
-
-It is possible to generate test for programs used for pre/post condition checks generation using the [pynguin](https://www.pynguin.eu/) framework (required for this purpose).
-To do so use the scripts found inside the `llm4spi/testgen` folder.
-* `llm4spiJsonConverter_testgen.py`: generates python scripts containing the program for which tests will be generated. \
-	Usage: \
-      `python llm4spiJsonConverter_testgen.py </path/to/json> </folder/for/test/generation>`
-	
-* `testgen.sh`: iterates over the folders created by `llm4spiJsonConverter_testgen.py` and uses pynguin to generate the tests. The generated tests will be contained in `test_<program_name>.py`, additionally the folder `pynguin_results` will be created containing a report of the test generation process. To use the pynguin framework the environment variable `PYNGUIN_DANGER_AWARE` should be set to anything (`EXPORT PYNGUIN_DANGER_AWARE=yes`). \
- Usage: `. ./testgen.sh </folder/containing/subfolders/with/programs>`
-
-
-## Mutation testing
-
-It is possible to test programs and pre/post condition checks with the mutation testing tecnique using [poodle](https://poodle.readthedocs.io/en/latest/mutation.html) tool (required for this purpose). To do so use the scripts found inside the `llm4spi/mutation` folder.
-* `llm4spiJsonConverter_mutation.py`: generates python scripts containing the code that will be mutated (`<program_name>.py`) and `test_<program_name>.py`  containing the tests to be evaluated. \
-	Usage: \
-       `python llm4spiJsonConverter_mutation.py </path/to/json> </folder/for/mutation> <selected_test_suite> <code_to_mutate>` \
-	The last two arguments are optional:
-	* `<selected_test_suite>`, specifies which test suite will be used to try to kill the mutants, 
-	defaults to `"validation"`, possible values: `["validation", "base0", "base1"]`
-	*  `<code_to_mutate>`, specifies which part of the code will be mutated, defaults to `"PROGRAM"`, possible values: `["PROGRAM", "POST_CONDITION"]`
-	
-* `mutation.sh`: iterates over the folders created by `llm4spiJsonConverter_mutation.py` and uses poodle to mutate the code. Reports (both in json and html format) will be generated under the folder `./mutation-report`. \
- Usage: `. ./mutation.sh </folder/containing/subfolders/with/programs> <selected_test_suite>`
