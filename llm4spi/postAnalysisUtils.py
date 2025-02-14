@@ -23,17 +23,19 @@ def exportOutLLMProposals(datasetFile:str, outputjson:str, dirToPutGeneratedPy:s
     with open(outputjson, "r") as fp:
         results = json.load(fp)
 
-    pyfname = "proposals_" + outputBaseName + ".py"
+    # pyfname = "proposals_" + outputBaseName + ".py"
+    pyfname = "proposals.py"
     pyfname = os.path.join(dirToPutGeneratedPy, pyfname)
 
     with open(pyfname, "w") as fpy:
 
         def writeProposals(Tid:str, condTy:str, completions:list[str]):
             k = 0
+
             for body in completions:
                 header0 = problems[Tid][f"{condTy}_condition_incomplete"]
                 params = header0[header0.find("("):]
-                funcHeader = f"def check_{condTy}_{Tid}_{k}" + params
+                funcHeader = f"def check_{condTy}_solution_{Tid}_{k}" + params
                 if body == None or body == "":
                     body = "   raise Exception(\"No proposal can be extracted.\")\n"
                 func = funcHeader + "\n" + body + "\n\n"
@@ -47,12 +49,14 @@ def exportOutLLMProposals(datasetFile:str, outputjson:str, dirToPutGeneratedPy:s
             fpy.write("# ----------------------\n")
             fpy.write(f"# Proposals for {Tid}\n")
             fpy.write("# ----------------------\n\n")
-            
+
             T = problems[Tid]
-            if "pre_condition_solution" in T:
+            # if "pre_condition_solution" in T:
+            if T['pre_condition_solution'] != "":
                 completions = R["pre_condition_completions"]
                 writeProposals(Tid,"pre",completions)
-            if "post_condition_solution" in T:
+            # if "post_condition_solution" in T:
+            if T['post_condition_solution'] != "":
                 completions = R["post_condition_completions"]
                 writeProposals(Tid,"post",completions)
 
@@ -110,11 +114,11 @@ def executeLLMProposal(datasetFile:str, outputjson:str, Tid:str, condTy:str, pro
 # example use:
 if __name__ == '__main__':
    ROOT = os.path.dirname(os.path.abspath(__file__))
-   dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "HEx-compact.json")
-   outputjson = os.path.join(ROOT, "results", "bla_all_usePrgDesc_04_02_2025_17_16_45.json")
-   odir = os.path.join(ROOT, "results")
+   dataset = os.path.join(ROOT, "..", "HEX", "HEx-compact.json")
+   outputjson = os.path.join(ROOT, "results", "gemini-2.0-flash-exp_usePrgDesc_all_usePrgDesc_02_02_2025_18_20_44.json")
+   odir = os.path.join(ROOT, "..", "HEX", "human-evalx-specs", "proposals")
 
-   #exportOutLLMProposals(dataset,outputjson,odir)
+   exportOutLLMProposals(dataset,outputjson,odir)
 
-   r = executeLLMProposal(dataset,outputjson,"HE1","post",0,[["()","()"],"()()"])
-   print(r)
+   # r = executeLLMProposal(dataset,outputjson,"HE1","post",0,[["()","()"],"()()"])
+   # print(r)
