@@ -198,6 +198,11 @@ class MyOpenAIClient(PromptResponder):
         PromptResponder.__init__(self)
         self.client = client
         self.model = modelId 
+        # Various OpenAI LLMs allow us to ask multiple answers on the same
+        # query. If this flag is set to false, we will ask the answer one
+        # at a time, despite the feature.
+        # Default is true. 
+        self.enableMultipleAnswer = True
     
     def completeIt(self, multipleAnswer:int, prompt:str) -> list[str] :
         if self.DEBUG: print(">>> PROMPT:\n" + prompt)
@@ -206,6 +211,8 @@ class MyOpenAIClient(PromptResponder):
         maxMultipleAnswers = multipleAnswer
         if self.model.startswith("o1") :
             maxMultipleAnswers = 8
+        if self.enableMultipleAnswer == False:
+            maxMultipleAnswers = 1
         
         # some models do not allow temperature to be set!!
         xtemperature = 0.7
@@ -216,6 +223,8 @@ class MyOpenAIClient(PromptResponder):
         responses = []
         while remainToDo > 0:
             numberOfAnswersToAsk = min(remainToDo,maxMultipleAnswers)
+            if self.DEBUG: 
+                print(f">>> asking {numberOfAnswersToAsk} answers")
             completion = self.client.chat.completions.create(
                 model = self.model,
                 temperature = xtemperature,
@@ -249,6 +258,7 @@ if __name__ == '__main__':
 
     myAIclient = MyOpenAIClient(openAIclient,modelId)
     myAIclient.DEBUG = True
+    #myAIclient.enableMultipleAnswer = False
 
     ROOT = os.path.dirname(os.path.abspath(__file__))
     #dataset = os.path.join(ROOT, "..", "..", "llm4spiDatasets", "data", "mini.json")
@@ -260,7 +270,7 @@ if __name__ == '__main__':
                      specificProblem = "HE158" ,
                      experimentName = "bla",     
                      enableEvaluation = True, 
-                     allowMultipleAnswers = 10,
+                     allowMultipleAnswers = 3,
                      prompt_type = "usePrgDesc"
                      #prompt_type="cot2"
                      )
