@@ -18,7 +18,11 @@ DEBUG = True
 
 
 # available command-line options:
-providers = ["openAI", "gpt4all", "groq", "gemini", "llamacpp"]
+
+providers = ["openAI", "openAI-1x","gpt4all", "groq", "gemini", "llamacpp"]
+# openAI --> single query get multiple answer enabled
+# openAI-1x --> multiple answers are queried separately one at a time
+
 options = [
    ("provider",  "The name of the LLM provider, e.g. openAI. Mandatory."),
    ("model",     "The name of the LLM to use, e.g. gpt3.5. Mandatory."),
@@ -100,6 +104,11 @@ def main(argv):
           openai_api_key = os.environ.get('OPENAI_API_KEY') 
           openAIclient = OpenAI(api_key=openai_api_key)
           myAIclient = MyOpenAIClient(openAIclient,model_)
+      case "openAI-1x" : 
+          openai_api_key = os.environ.get('OPENAI_API_KEY') 
+          openAIclient = OpenAI(api_key=openai_api_key)
+          myAIclient = MyOpenAIClient(openAIclient,model_)
+          myAIclient.enableMultipleAnswer = False
       case "gpt4all" :
           gpt4allClient = GPT4All(model_, model_path=gpt4all_localModelPath_, device=gpt4all_device_)
           myAIclient = MyGPT4ALL_Client(gpt4allClient)
