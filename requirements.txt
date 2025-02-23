@@ -3,3 +3,4 @@ openai
 func_timeout
 edit_distance
 google-genai
+llama_cpp
