@@ -7,7 +7,9 @@ import time
 from openai4spi import PromptResponder, generate_results, MyOpenAIClient
 from llm4spi import MyGPT4ALL_Client
 from groq4spi import MyGroqClient
+from anth4spi import MyAnthorpicClient
 from openai import OpenAI
+from anthropic import Anthropic
 from gpt4all import GPT4All
 from google import genai
 from google4spi import GoogleResponder
@@ -19,7 +21,7 @@ DEBUG = True
 
 # available command-line options:
 
-providers = ["openAI", "openAI-1x","gpt4all", "groq", "gemini", "llamacpp"]
+providers = ["openAI", "openAI-1x","gpt4all", "groq", "anthropic", "gemini", "llamacpp"]
 # openAI --> single query get multiple answer enabled
 # openAI-1x --> multiple answers are queried separately one at a time
 
@@ -35,6 +37,8 @@ options = [
    ("allowMultipleAnswers", "If present specifies how many answers per problem are requested. If not present it is 1."),
    ("gpt4all_localModelPath", "If a local GPT4ALL model is used, this point to the folder where GPT4AALL models are placed. Default is ../../models"),
    ("gpt4all_device", "If a local GPT4ALL model is used, this specifies to use cpu or gpu-id for running the model. if not specified, cpu is used."),
+   ("anthropic_sleep", "Sleep (in sec) added at the end of each problem for Anthropic models. If not present it is 0."),
+
    ("gemini_rpm", "Request per minute for Google Gemini models."),
    ("gemini_tpm", "Tokens per minute for Google Gemini models."),
    ("gemini_rpd", "Request per day for Google Gemini models."),
@@ -57,6 +61,7 @@ def main(argv):
    specificProblem_ = None
    enableEvaluation_ = True
    allowMultipleAnswers_ = 1
+   anthropic_sleep_ = None
    gpt4all_localModelPath_ = os.path.join(ROOT, "..", "..", "models") 
    gpt4all_device_ = "cpu"
    gemini_rpm_ = 15
@@ -92,6 +97,8 @@ def main(argv):
          case "--allowMultipleAnswers" : allowMultipleAnswers_ = int(arg)
          case "--experimentName" : experimentName_ = arg
 
+         case "--anthropic_sleep" : anthropic_sleep_ = int(arg)
+
          case "--gemini_rpm": gemini_rpm_ = int(arg)
          case "--gemini_tpm": gemini_tpm_ = int(arg)
          case "--gemini_rpd": gemini_rpd_ = int(arg)
@@ -117,6 +124,12 @@ def main(argv):
           openAIclient = OpenAI(base_url="https://api.groq.com/openai/v1",
                                 api_key=groq_api_key)    
           myAIclient = MyGroqClient(openAIclient,model_)
+      case "anthropic" :
+         anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY') 
+         anthropic_client = Anthropic(api_key = anthropic_api_key)
+         myAIclient = MyAnthorpicClient(anthropic_client,model_)
+         if anthropic_sleep_ != None :
+            myAIclient.sleepTime = anthropic_sleep_      
       case "gemini" :
           gemini_api_key = os.environ.get('GEMINI_API_KEY')
           geminiClient = genai.Client(api_key=gemini_api_key)
