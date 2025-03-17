@@ -68,7 +68,7 @@ class MyGroqClient(PromptResponder):
                 if self.DEBUG: 
                     print(f">>> SLEEPING {sleepTime}s ...")
                 self.t0 = time.time()
-                time.sleep
+                time.sleep(sleepTime)
 
         return responses
     
